@@ -39,7 +39,6 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeInit(
       new Pipeline(modelDir, labelPath, cpuThreadNum, cpuPowerMode, inputWidth,
                    inputHeight, inputMean, inputStd, scoreThreshold));
 }
-
 /*
  * Class:     com_baidu_paddle_lite_demo_object_detection_Native
  * Method:    nativeRelease

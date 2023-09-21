@@ -13,10 +13,11 @@
 // limitations under the License.
 
 #include "Pipeline.h"
+#include "BYTETracker.h"
 #include <algorithm>
 #include <map>
 #include <utility>
-
+BYTETracker tracker(25, 30);
 Detector::Detector(const std::string &modelDir, const std::string &labelPath,
                    const int cpuThreadNum, const std::string &cpuPowerMode,
                    int inputWidth, int inputHeight,
@@ -161,7 +162,7 @@ void Detector::ExtractBoxes(int seq_id, const float *in,
       int left = cx - w / 2.0;
       int top = cy - h / 2.0;
 
-      obj.rec = cv::Rect(left, top, w, h);
+      obj.rect = cv::Rect(left, top, w, h);
       obj.prob = score;
       obj.class_id = max_cls_id;
 
@@ -198,7 +199,7 @@ void Detector::Nms(const std::map<int, std::vector<Object>> &src,
                             : cv::Scalar(0, 0, 0);
       res->push_back(item);
       for (size_t n = m + 1; n < dets.size(); ++n) {
-        if (iou_calc(item.rec, dets[n].rec) > nmsThresh_) {
+        if (iou_calc(item.rect, dets[n].rect) > nmsThresh_) {
           dets.erase(dets.begin() + n);
           --n;
         }
@@ -225,7 +226,7 @@ void Detector::Predict(const cv::Mat &rgbaImage, std::vector<Object> *results,
   auto t = GetCurrentTime();
   Preprocess(rgbaImage);
   *preprocessTime = GetElapsedTime(t);
-  LOGD("Detector postprocess costs %f ms", *preprocessTime);
+  LOGD("Detector preprocess costs %f ms", *preprocessTime);
 
   t = GetCurrentTime();
   predictor_->Run();
@@ -248,13 +249,31 @@ Pipeline::Pipeline(const std::string &modelDir, const std::string &labelPath,
                                scoreThreshold));
 }
 
+void Pipeline::VisualizeTrackerResults(const std::vector<STrack> stracks,
+                                cv::Mat *rgbaImage) {
+  for (int i = 0; i < stracks.size(); i++)
+  {
+    vector<float> tlwh = stracks[i].tlwh;
+    bool vertical = tlwh[2] / tlwh[3] > 1.6;
+    if (tlwh[2] * tlwh[3] > 20 && !vertical)
+    {
+      Scalar s = tracker.get_color(stracks[i].track_id);
+      putText(*rgbaImage, format("%d", stracks[i].track_id), Point(tlwh[0]+tlwh[2]-10, tlwh[1] - 5),
+              0, 0.5, s, 2, 1.0f);
+      rectangle(*rgbaImage, Rect(tlwh[0], tlwh[1], tlwh[2], tlwh[3]), s, 2);
+    }
+  }
+
+
+}
+
 void Pipeline::VisualizeResults(const std::vector<Object> &results,
                                 cv::Mat *rgbaImage) {
   int oriw = rgbaImage->cols;
   int orih = rgbaImage->rows;
   for (int i = 0; i < results.size(); i++) {
     Object object = results[i];
-    cv::Rect boundingBox = object.rec & cv::Rect(0, 0, oriw - 1, orih - 1);
+    cv::Rect boundingBox = object.rect & cv::Rect(0, 0, oriw - 1, orih - 1);
     // Configure text size
     std::string text = object.class_name + ": ";
     std::string str_prob = std::to_string(object.prob);
@@ -274,10 +293,12 @@ void Pipeline::VisualizeResults(const std::vector<Object> &results,
     cv::putText(*rgbaImage, text, cv::Point2d(boundingBox.x, boundingBox.y),
                 fontFace, fontScale, cv::Scalar(255, 255, 255), fontThickness);
   }
+
+
 }
 
 void Pipeline::VisualizeStatus(double preprocessTime, double predictTime,
-                               double postprocessTime, cv::Mat *rgbaImage) {
+                               double postprocessTime,double trackTime, cv::Mat *rgbaImage) {
   char text[255];
   cv::Scalar fontColor = cv::Scalar(255, 255, 255);
   int fontFace = cv::FONT_HERSHEY_PLAIN;
@@ -298,21 +319,29 @@ void Pipeline::VisualizeStatus(double preprocessTime, double predictTime,
   offset.y += textSize.height;
   cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
               fontThickness);
+  sprintf(text, "Tracking time: %.3f ms", trackTime); // NOLINT
+  offset.y += textSize.height;
+  cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
+              fontThickness);
 }
 
+
+
 bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath) {
-  double preprocessTime = 0, predictTime = 0, postprocessTime = 0;
+  double preprocessTime = 0, predictTime = 0, postprocessTime = 0,trackProcessTime = 0;
 
   // Feed the image, run inference and parse the results
   std::vector<Object> results;
   detector_->Predict(rgbaImage, &results, &preprocessTime, &predictTime,
                      &postprocessTime);
-
+  auto t = GetCurrentTime();
+  vector<STrack> output_stracks = tracker.update(results);
+  trackProcessTime = GetElapsedTime(t);
   // Visualize the objects to the origin image
   VisualizeResults(results, &rgbaImage);
-
+  VisualizeTrackerResults(output_stracks,&rgbaImage);
   // Visualize the status(performance data) to the origin image
-  VisualizeStatus(preprocessTime, predictTime, postprocessTime, &rgbaImage);
+  VisualizeStatus(preprocessTime, predictTime, postprocessTime,trackProcessTime, &rgbaImage);
 
   // Dump modified image if savedImagePath is set
   if (!savedImagePath.empty()) {

@@ -10,6 +10,8 @@ cmake_minimum_required(VERSION 3.4.1)
 # CMake builds them for you. Gradle automatically packages shared libraries with
 # your APK.
 
+INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../../../eigen-3.3.9")
+
 set(PaddleLite_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../PaddleLite")
 include_directories(${PaddleLite_DIR}/cxx/include)
 
@@ -33,7 +35,7 @@ add_library(
   # Sets the library as a shared library.
   SHARED
   # Provides a relative path to your source file(s).
-  Native.cc Pipeline.cc Utils.cc)
+  Native.cc Pipeline.cc Utils.cc BYTETracker.cpp kalmanFilter.cpp lapjv.cpp STrack.cpp utils.cpp )
 
 find_library(
   # Sets the name of the path variable.

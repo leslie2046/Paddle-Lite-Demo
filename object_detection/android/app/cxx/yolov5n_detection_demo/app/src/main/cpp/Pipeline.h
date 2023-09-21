@@ -16,6 +16,7 @@
 
 #include "Utils.h"                     // NOLINT
 #include "paddle_api.h"                // NOLINT
+#include "STrack.h"
 #include <EGL/egl.h>                   // NOLINT
 #include <GLES2/gl2.h>                 // NOLINT
 #include <map>                         // NOLINT
@@ -31,7 +32,8 @@ struct Object {
   std::string class_name;
   cv::Scalar fill_color;
   float prob;
-  cv::Rect rec;
+  cv::Rect rect;
+//  cv::Rect_<float> rect;
   int class_id;
 };
 
@@ -96,8 +98,9 @@ private: // NOLINT
 
   // Visualize the status(performace data) to origin image
   void VisualizeStatus(double preprocessTime, double predictTime,
-                       double postprocessTime, cv::Mat *rgbaImage);
-
+                       double postprocessTime,double trackTime, cv::Mat *rgbaImage);
+  void VisualizeTrackerResults(const std::vector<STrack> stracks,
+                                           cv::Mat *rgbaImage);
 private: // NOLINT
   std::shared_ptr<Detector> detector_;
 };
