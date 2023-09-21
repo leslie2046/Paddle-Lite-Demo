@@ -13,15 +13,18 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.*;
 import android.widget.*;
 
 import com.baidu.paddle.lite.demo.common.CameraSurfaceView;
 import com.baidu.paddle.lite.demo.common.Utils;
 import com.baidu.paddle.lite.demo.object_detection.R;
+import com.baidu.paddle.lite.demo.common.TrackingObject;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class MainActivity extends Activity implements View.OnClickListener, CameraSurfaceView.OnTextureChangedListener {
@@ -86,7 +89,9 @@ public class MainActivity extends Activity implements View.OnClickListener, Came
         synchronized (this) {
             savedImagePath = MainActivity.this.savedImagePath;
         }
-        boolean modified = predictor.process(ARGB8888ImageBitmap, savedImagePath);
+        ArrayList<TrackingObject> outputs = new ArrayList<TrackingObject> ();
+        boolean modified = predictor.process(ARGB8888ImageBitmap, savedImagePath,outputs);
+        Log.d(TAG, outputs.toString());
         if (!savedImagePath.isEmpty()) {
             synchronized (this) {
                 MainActivity.this.savedImagePath = "result.jpg";

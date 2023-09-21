@@ -267,9 +267,11 @@ void Pipeline::VisualizeTrackerResults(const std::vector<STrack> stracks,
     if (tlwh[2] * tlwh[3] > 20 && !vertical)
     {
       Scalar s = tracker.get_color(stracks[i].track_id);
-      putText(*rgbaImage, format("%d", stracks[i].track_id), Point(tlwh[0]+tlwh[2]-10, tlwh[1] - 5),
+      putText(*rgbaImage, format("%d(%.2f)", stracks[i].track_id,stracks[i].score), Point(tlwh[0]+tlwh[2]-10, tlwh[1] - 5),
               0, 0.5, s, 2, 1.0f);
       rectangle(*rgbaImage, Rect(tlwh[0], tlwh[1], tlwh[2], tlwh[3]), s, 2);
+//      LOGD("tlwh (%f,%f,%f,%f)", tlwh[0],tlwh[1],tlwh[2],tlwh[3]);
+//      LOGD("tlbr (%f,%f,%f,%f)", stracks[i].tlbr[0],stracks[i].tlbr[1],stracks[i].tlbr[2],stracks[i].tlbr[3]);
     }
   }
 
@@ -282,7 +284,10 @@ void Pipeline::VisualizeResults(const std::vector<Object> &results,
   int orih = rgbaImage->rows;
   for (int i = 0; i < results.size(); i++) {
     Object object = results[i];
+//    LOGD("VisualizeResults oriw orih(%d,%d)", oriw,orih);
+//      LOGD("VisualizeResults object.rect (%d,%d,%d,%d)", object.rect.x,object.rect.y,object.rect.width,object.rect.height);
     cv::Rect boundingBox = object.rect & cv::Rect(0, 0, oriw - 1, orih - 1);
+//    LOGD("VisualizeResults boundingBox (%d,%d,%d,%d)", boundingBox.x,boundingBox.y,boundingBox.width,boundingBox.height);
     // Configure text size
     std::string text = object.class_name + ": ";
     std::string str_prob = std::to_string(object.prob);
@@ -332,13 +337,17 @@ void Pipeline::VisualizeStatus(double preprocessTime, double predictTime,
   offset.y += textSize.height;
   cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
               fontThickness);
+  sprintf(text, "ByteTrack with Yolov5"); // NOLINT
+  offset.y += textSize.height;
+  cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
+              fontThickness);
 }
 
 void Pipeline::setTrackingClassId(int classId){
   trackingClassId = classId;
 }
 
-bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath) {
+bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vector<STrack>* outputs) {
   double preprocessTime = 0, predictTime = 0, postprocessTime = 0,trackProcessTime = 0;
 
   // Feed the image, run inference and parse the results
@@ -360,6 +369,6 @@ bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath) {
     cv::cvtColor(rgbaImage, bgrImage, cv::COLOR_RGBA2BGR);
     imwrite(savedImagePath, bgrImage);
   }
-
+  std::copy(output_stracks.begin(), output_stracks.end(), std::back_inserter(*outputs));
   return true;
 }

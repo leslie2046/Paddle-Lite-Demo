@@ -73,10 +73,19 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeRelease(
 JNIEXPORT jboolean JNICALL
 Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeProcess(
     JNIEnv *env, jclass thiz, jlong ctx, jobject jARGB8888ImageBitmap,
-    jstring jsavedImagePath) {
+    jstring jsavedImagePath, jobject outputs) {
   if (ctx == 0) {
     return JNI_FALSE;
   }
+// 1. 获取ArrayList和TrackingObject类的引用
+  jclass arrayListClass = env->FindClass("java/util/ArrayList");
+  jclass trackingObjectClass = env->FindClass("com/baidu/paddle/lite/demo/common/TrackingObject");
+
+  // 2. 获取ArrayList的add方法和TrackingObject的字段ID
+  jmethodID arrayListAddMethod = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");
+  jfieldID trackIdField = env->GetFieldID(trackingObjectClass, "trackId", "I");
+  jfieldID scoreField = env->GetFieldID(trackingObjectClass, "score", "F");
+  jfieldID rectField = env->GetFieldID(trackingObjectClass, "rect", "Landroid/graphics/RectF;");
 
   // Convert the android bitmap(ARGB8888) to the OpenCV RGBA image. Actually,
   // the data layout of AGRB8888 is R, G, B, A, it's the same as CV RGBA image,
@@ -109,8 +118,41 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeProcess(
 
   std::string savedImagePath = jstring_to_cpp_string(env, jsavedImagePath);
   Pipeline *pipeline = reinterpret_cast<Pipeline *>(ctx);
-  bool modified = pipeline->Process(rgbaImage, savedImagePath);
+  vector<STrack> output_stracks;
+  bool modified = pipeline->Process(rgbaImage, savedImagePath,&output_stracks);
   if (modified) {
+    for (int i = 0; i < output_stracks.size(); i++)
+    {
+      STrack sTrack = output_stracks[i];
+      vector<float> tlbr = sTrack.tlbr;
+      jobject trackingObject = env->AllocObject(trackingObjectClass);
+      env->SetIntField(trackingObject, trackIdField, sTrack.track_id);
+      env->SetFloatField(trackingObject, scoreField, sTrack.score);
+
+      // 创建并设置RectF对象（假设已经存在rectClass和对应的field IDs）
+      jclass rectFClass = env->FindClass("android/graphics/RectF");
+      jobject rectF = env->AllocObject(rectFClass);
+      // 设置RectF对象的字段（这里假设字段名称和类型已知）
+      jfieldID leftField = env->GetFieldID(rectFClass, "left", "F");
+      jfieldID topField = env->GetFieldID(rectFClass, "top", "F");
+      jfieldID rightField = env->GetFieldID(rectFClass, "right", "F");
+      jfieldID bottomField = env->GetFieldID(rectFClass, "bottom", "F");
+
+// 假设left=1.0f, top=2.0f, right=3.0f, bottom=4.0f
+      env->SetFloatField(rectF, leftField, jfloat(tlbr[0]));
+      env->SetFloatField(rectF, topField, jfloat(tlbr[1]));
+      env->SetFloatField(rectF, rightField, jfloat(tlbr[2]));
+      env->SetFloatField(rectF, bottomField, jfloat(tlbr[3]));
+      // 将RectF对象设置到TrackingObject的rect字段中
+      env->SetObjectField(trackingObject, rectField, rectF);
+
+      // 添加到ArrayList中
+      env->CallBooleanMethod(outputs, arrayListAddMethod, trackingObject);
+
+      // 删除局部引用，避免内存泄漏
+      env->DeleteLocalRef(trackingObject);
+      env->DeleteLocalRef(rectF);
+      }
     // Convert the OpenCV RGBA image to the android bitmap(ARGB8888)
     if (rgbaImage.type() != CV_8UC4) {
       LOGE("Only CV_8UC4 color format is supported!");

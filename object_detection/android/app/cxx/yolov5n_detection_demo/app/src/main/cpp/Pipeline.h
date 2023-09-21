@@ -91,7 +91,7 @@ public: // NOLINT
            int inputWidth, int inputHeight, const std::vector<float> &inputMean,
            const std::vector<float> &inputStd, float scoreThreshold);
 
-  bool Process(cv::Mat &rgbaImage, std::string savedImagePath); // NOLINT
+  bool Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vector<STrack>* output_stracks); // NOLINT
   void setTrackingClassId(int classId);
 
 private: // NOLINT

@@ -2,6 +2,9 @@ package com.baidu.paddle.lite.demo.object_detection;
 
 import android.graphics.Bitmap;
 
+import java.util.ArrayList;
+import com.baidu.paddle.lite.demo.common.TrackingObject;
+
 public class Native {
     static {
         System.loadLibrary("Native");
@@ -38,12 +41,12 @@ public class Native {
         return nativeRelease(ctx);
     }
 
-    public boolean process(Bitmap ARGB8888ImageBitmap, String savedImagePath) {
+    public boolean process(Bitmap ARGB8888ImageBitmap, String savedImagePath,ArrayList<TrackingObject> outputs) {
         if (ctx == 0) {
             return false;
         }
         // ARGB8888 bitmap is only supported in native, other color formats can be added by yourself.
-        return nativeProcess(ctx, ARGB8888ImageBitmap, savedImagePath);
+        return nativeProcess(ctx, ARGB8888ImageBitmap, savedImagePath,outputs);
     }
 
     public static native long nativeInit(String modelDir,
@@ -58,7 +61,7 @@ public class Native {
 
     public static native boolean nativeRelease(long ctx);
 
-    public static native boolean nativeProcess(long ctx, Bitmap ARGB888ImageBitmap, String savedImagePath);
+    public static native boolean nativeProcess(long ctx, Bitmap ARGB888ImageBitmap, String savedImagePath, ArrayList<TrackingObject> outputs);
 
     public static native boolean nativeSetTrackingClassId(long ctx,int classId);
 }
