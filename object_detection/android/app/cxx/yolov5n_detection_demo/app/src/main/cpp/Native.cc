@@ -39,6 +39,16 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeInit(
       new Pipeline(modelDir, labelPath, cpuThreadNum, cpuPowerMode, inputWidth,
                    inputHeight, inputMean, inputStd, scoreThreshold));
 }
+
+JNIEXPORT jboolean JNICALL
+Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeSetTrackingClassId(JNIEnv* env, jclass thiz, jlong ctx, jint classId)
+{
+  if (classId < 0)
+    return JNI_FALSE;
+  Pipeline *pipeline = reinterpret_cast<Pipeline *>(ctx);
+  pipeline->setTrackingClassId(classId);
+  return JNI_TRUE;
+}
 /*
  * Class:     com_baidu_paddle_lite_demo_object_detection_Native
  * Method:    nativeRelease

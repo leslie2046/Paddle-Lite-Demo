@@ -18,6 +18,7 @@
 #include <map>
 #include <utility>
 BYTETracker tracker(25, 30);
+int trackingClassId = -1;
 Detector::Detector(const std::string &modelDir, const std::string &labelPath,
                    const int cpuThreadNum, const std::string &cpuPowerMode,
                    int inputWidth, int inputHeight,
@@ -217,7 +218,15 @@ void Detector::Postprocess(std::vector<Object> *results) {
     auto shape_out = output_tensor->shape();
     ExtractBoxes(k, outptr, &raw_outputs, shape_out);
   }
-  Nms(raw_outputs, results);
+  vector<Object> tmp_results;
+  Nms(raw_outputs, &tmp_results);
+  for(int i=0;i<tmp_results.size();i++){
+    if(trackingClassId<0){
+      results->push_back(tmp_results[i]);
+    }else if(tmp_results[i].class_id==trackingClassId){
+      results->push_back(tmp_results[i]);
+    }
+  }
 }
 
 void Detector::Predict(const cv::Mat &rgbaImage, std::vector<Object> *results,
@@ -325,7 +334,9 @@ void Pipeline::VisualizeStatus(double preprocessTime, double predictTime,
               fontThickness);
 }
 
-
+void Pipeline::setTrackingClassId(int classId){
+  trackingClassId = classId;
+}
 
 bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath) {
   double preprocessTime = 0, predictTime = 0, postprocessTime = 0,trackProcessTime = 0;

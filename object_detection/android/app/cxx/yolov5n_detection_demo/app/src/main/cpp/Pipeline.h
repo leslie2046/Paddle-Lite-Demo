@@ -81,6 +81,7 @@ private: // NOLINT
   const float nmsThresh_ = 0.45;
   float ratio_ = 1.0;
   int inputX, inputY, inputW, inputH;
+
 };
 
 class Pipeline {
@@ -91,6 +92,7 @@ public: // NOLINT
            const std::vector<float> &inputStd, float scoreThreshold);
 
   bool Process(cv::Mat &rgbaImage, std::string savedImagePath); // NOLINT
+  void setTrackingClassId(int classId);
 
 private: // NOLINT
   // Visualize the results to origin image
@@ -103,4 +105,5 @@ private: // NOLINT
                                            cv::Mat *rgbaImage);
 private: // NOLINT
   std::shared_ptr<Detector> detector_;
+
 };

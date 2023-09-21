@@ -28,9 +28,9 @@ public class Native {
                 inputMean,
                 inputStd,
                 scoreThreshold);
+        nativeSetTrackingClassId(ctx,0);
         return ctx == 0;
     }
-
     public boolean release() {
         if (ctx == 0) {
             return false;
@@ -59,4 +59,6 @@ public class Native {
     public static native boolean nativeRelease(long ctx);
 
     public static native boolean nativeProcess(long ctx, Bitmap ARGB888ImageBitmap, String savedImagePath);
+
+    public static native boolean nativeSetTrackingClassId(long ctx,int classId);
 }
