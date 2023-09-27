@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <map>
 #include <utility>
-BYTETracker tracker(25, 30);
+BYTETracker tracker(7, 20);
 int trackingClassId = -1;
 Detector::Detector(const std::string &modelDir, const std::string &labelPath,
                    const int cpuThreadNum, const std::string &cpuPowerMode,
@@ -235,17 +235,17 @@ void Detector::Predict(const cv::Mat &rgbaImage, std::vector<Object> *results,
   auto t = GetCurrentTime();
   Preprocess(rgbaImage);
   *preprocessTime = GetElapsedTime(t);
-  LOGD("Detector preprocess costs %f ms", *preprocessTime);
+//  LOGD("Detector preprocess costs %f ms", *preprocessTime);
 
   t = GetCurrentTime();
   predictor_->Run();
   *predictTime = GetElapsedTime(t);
-  LOGD("Detector predict costs %f ms", *predictTime);
+//  LOGD("Detector predict costs %f ms", *predictTime);
 
   t = GetCurrentTime();
   Postprocess(results);
   *postprocessTime = GetElapsedTime(t);
-  LOGD("Detector postprocess costs %f ms", *postprocessTime);
+//  LOGD("Detector postprocess costs %f ms", *postprocessTime);
 }
 
 Pipeline::Pipeline(const std::string &modelDir, const std::string &labelPath,
@@ -260,18 +260,19 @@ Pipeline::Pipeline(const std::string &modelDir, const std::string &labelPath,
 
 void Pipeline::VisualizeTrackerResults(const std::vector<STrack> stracks,
                                 cv::Mat *rgbaImage) {
+    int fontFace = cv::FONT_HERSHEY_PLAIN;
+    double fontScale = 1.5f;
+    float fontThickness = 2.0f;
   for (int i = 0; i < stracks.size(); i++)
   {
     vector<float> tlwh = stracks[i].tlwh;
     bool vertical = tlwh[2] / tlwh[3] > 1.6;
     if (tlwh[2] * tlwh[3] > 20 && !vertical)
     {
-      Scalar s = tracker.get_color(stracks[i].track_id);
-      putText(*rgbaImage, format("%d(%.2f)", stracks[i].track_id,stracks[i].score), Point(tlwh[0]+tlwh[2]-10, tlwh[1] - 5),
-              0, 0.5, s, 2, 1.0f);
+    Scalar s = tracker.get_color(stracks[i].track_id);
+    cv::putText(*rgbaImage, format("%d", stracks[i].track_id), cv::Point2d(tlwh[0]+tlwh[2]-15, tlwh[1]+15),
+                    fontFace, fontScale,s, fontThickness);
       rectangle(*rgbaImage, Rect(tlwh[0], tlwh[1], tlwh[2], tlwh[3]), s, 2);
-//      LOGD("tlwh (%f,%f,%f,%f)", tlwh[0],tlwh[1],tlwh[2],tlwh[3]);
-//      LOGD("tlbr (%f,%f,%f,%f)", stracks[i].tlbr[0],stracks[i].tlbr[1],stracks[i].tlbr[2],stracks[i].tlbr[3]);
     }
   }
 
@@ -289,9 +290,9 @@ void Pipeline::VisualizeResults(const std::vector<Object> &results,
     cv::Rect boundingBox = object.rect & cv::Rect(0, 0, oriw - 1, orih - 1);
 //    LOGD("VisualizeResults boundingBox (%d,%d,%d,%d)", boundingBox.x,boundingBox.y,boundingBox.width,boundingBox.height);
     // Configure text size
-    std::string text = object.class_name + ": ";
-    std::string str_prob = std::to_string(object.prob);
-    text += str_prob.substr(0, str_prob.find(".") + 4);
+//    std::string text = "";
+    char text[255];
+    sprintf(text, "%s %.2f",object.class_name.c_str(),object.prob);
     int fontFace = cv::FONT_HERSHEY_PLAIN;
     double fontScale = 1.5f;
     float fontThickness = 1.0f;
@@ -329,15 +330,11 @@ void Pipeline::VisualizeStatus(double preprocessTime, double predictTime,
   offset.y += textSize.height;
   cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
               fontThickness);
-  sprintf(text, "Postprocess time: %.3f ms", postprocessTime); // NOLINT
+  sprintf(text, "Postprocess time: %.1f ms", postprocessTime); // NOLINT
   offset.y += textSize.height;
   cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
               fontThickness);
-  sprintf(text, "Tracking time: %.3f ms", trackTime); // NOLINT
-  offset.y += textSize.height;
-  cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
-              fontThickness);
-  sprintf(text, "ByteTrack with Yolov5"); // NOLINT
+  sprintf(text, "Tracking time: %.1f ms", trackTime); // NOLINT
   offset.y += textSize.height;
   cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
               fontThickness);
@@ -360,7 +357,7 @@ bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vecto
   // Visualize the objects to the origin image
   VisualizeResults(results, &rgbaImage);
   VisualizeTrackerResults(output_stracks,&rgbaImage);
-  // Visualize the status(performance data) to the origin image
+//   Visualize the status(performance data) to the origin image
   VisualizeStatus(preprocessTime, predictTime, postprocessTime,trackProcessTime, &rgbaImage);
 
   // Dump modified image if savedImagePath is set

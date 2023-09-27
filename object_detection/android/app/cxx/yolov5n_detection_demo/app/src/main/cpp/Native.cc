@@ -120,6 +120,7 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeProcess(
   Pipeline *pipeline = reinterpret_cast<Pipeline *>(ctx);
   vector<STrack> output_stracks;
   bool modified = pipeline->Process(rgbaImage, savedImagePath,&output_stracks);
+  t = GetCurrentTime();
   if (modified) {
     for (int i = 0; i < output_stracks.size(); i++)
     {
@@ -138,7 +139,6 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeProcess(
       jfieldID rightField = env->GetFieldID(rectFClass, "right", "F");
       jfieldID bottomField = env->GetFieldID(rectFClass, "bottom", "F");
 
-// 假设left=1.0f, top=2.0f, right=3.0f, bottom=4.0f
       env->SetFloatField(rectF, leftField, jfloat(tlbr[0]));
       env->SetFloatField(rectF, topField, jfloat(tlbr[1]));
       env->SetFloatField(rectF, rightField, jfloat(tlbr[2]));
@@ -158,7 +158,7 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeProcess(
       LOGE("Only CV_8UC4 color format is supported!");
       return JNI_FALSE;
     }
-    t = GetCurrentTime();
+
     if (AndroidBitmap_lockPixels(env, jARGB8888ImageBitmap, &bitmapPixels) <
         0) {
       LOGE("Invoke AndroidBitmap_lockPixels() failed!");
