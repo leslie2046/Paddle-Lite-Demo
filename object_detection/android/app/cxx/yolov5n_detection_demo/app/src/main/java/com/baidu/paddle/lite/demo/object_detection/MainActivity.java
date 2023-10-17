@@ -90,6 +90,7 @@ public class MainActivity extends Activity implements View.OnClickListener, Came
             savedImagePath = MainActivity.this.savedImagePath;
         }
         ArrayList<TrackingObject> outputs = new ArrayList<TrackingObject> ();
+
         boolean modified = predictor.process(ARGB8888ImageBitmap, savedImagePath,outputs);
         Log.d(TAG, outputs.toString());
         if (!savedImagePath.isEmpty()) {

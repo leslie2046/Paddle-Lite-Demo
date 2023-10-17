@@ -265,15 +265,35 @@ void Pipeline::VisualizeTrackerResults(const std::vector<STrack> stracks,
     float fontThickness = 2.0f;
   for (int i = 0; i < stracks.size(); i++)
   {
-    vector<float> tlwh = stracks[i].tlwh;
+//    LOGD("VisualizeTrackerResults tlwh(%f,%f)", stracks[i].tlwh[0],stracks[i].tlwh[1],stracks[i].tlwh[2],stracks[i].tlwh[3]);
+//    LOGD("VisualizeTrackerResults tlbr(%f,%f)", stracks[i].tlbr[0],stracks[i].tlbr[1],stracks[i].tlbr[2],stracks[i].tlbr[3]);
+
+      vector<float> tlwh = stracks[i].tlwh;
     bool vertical = tlwh[2] / tlwh[3] > 1.6;
     if (tlwh[2] * tlwh[3] > 20 && !vertical)
     {
     Scalar s = tracker.get_color(stracks[i].track_id);
-    cv::putText(*rgbaImage, format("%d", stracks[i].track_id), cv::Point2d(tlwh[0]+tlwh[2]-15, tlwh[1]+15),
+    char text1[20];
+    if(stracks[i].directionX==StationaryX){
+      sprintf(text1,"%s","stay");
+    }else if(stracks[i].directionX==Left){
+      sprintf(text1,"%s","left");
+    }else if(stracks[i].directionX==Right){
+      sprintf(text1,"%s","right");
+    }
+      char text2[20];
+      if(stracks[i].directionZ==StationaryZ){
+        sprintf(text2,"%s","stay");
+      }else if(stracks[i].directionZ==Close){
+        sprintf(text2,"%s","close");
+      }else if(stracks[i].directionZ==Away){
+        sprintf(text2,"%s","away");
+      }
+    cv::putText(*rgbaImage, format("%d,%s,%s", stracks[i].track_id,text1,text2), cv::Point2d(tlwh[0]+tlwh[2]-15, tlwh[1]+15),
                     fontFace, fontScale,s, fontThickness);
       rectangle(*rgbaImage, Rect(tlwh[0], tlwh[1], tlwh[2], tlwh[3]), s, 2);
     }
+//      LOGD("VisualizeTrackerResults history(%d)",stracks[i].history.size());
   }
 
 
@@ -286,7 +306,7 @@ void Pipeline::VisualizeResults(const std::vector<Object> &results,
   for (int i = 0; i < results.size(); i++) {
     Object object = results[i];
 //    LOGD("VisualizeResults oriw orih(%d,%d)", oriw,orih);
-//      LOGD("VisualizeResults object.rect (%d,%d,%d,%d)", object.rect.x,object.rect.y,object.rect.width,object.rect.height);
+      LOGD("VisualizeResults object.rect (%d,%d,%d,%d)", object.rect.x,object.rect.y,object.rect.width,object.rect.height);
     cv::Rect boundingBox = object.rect & cv::Rect(0, 0, oriw - 1, orih - 1);
 //    LOGD("VisualizeResults boundingBox (%d,%d,%d,%d)", boundingBox.x,boundingBox.y,boundingBox.width,boundingBox.height);
     // Configure text size
@@ -352,7 +372,7 @@ bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vecto
   detector_->Predict(rgbaImage, &results, &preprocessTime, &predictTime,
                      &postprocessTime);
   auto t = GetCurrentTime();
-  vector<STrack> output_stracks = tracker.update(results);
+  vector<STrack> output_stracks = tracker.update(results,rgbaImage.cols,rgbaImage.rows);
   trackProcessTime = GetElapsedTime(t);
   // Visualize the objects to the origin image
   VisualizeResults(results, &rgbaImage);

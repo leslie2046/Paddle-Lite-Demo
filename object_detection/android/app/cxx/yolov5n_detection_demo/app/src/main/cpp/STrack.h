@@ -7,7 +7,8 @@ using namespace cv;
 using namespace std;
 
 enum TrackState { New = 0, Tracked, Lost, Removed };
-
+enum DirectionX { StationaryX, Left, Right };
+enum DirectionZ { StationaryZ, Close, Away };
 class STrack
 {
 public:
@@ -28,6 +29,7 @@ public:
 	void activate(byte_kalman::KalmanFilter &kalman_filter, int frame_id);
 	void re_activate(STrack &new_track, int frame_id, bool new_id = false);
 	void update(STrack &new_track, int frame_id);
+	void updateHistoryAndDirection(int inputW,int inputH);
 
 public:
 	bool is_activated;
@@ -44,7 +46,9 @@ public:
 	KAL_MEAN mean;
 	KAL_COVA covariance;
 	float score;
-
+	DirectionX directionX = StationaryX;  // 存储x轴运动方向
+	DirectionZ directionZ = StationaryZ;  // 存储z轴运动方向
+	std::deque<std::vector<float>> history;  // 存储历史轨迹
 private:
 	byte_kalman::KalmanFilter kalman_filter;
 };

@@ -86,8 +86,11 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeProcess(
   jfieldID trackIdField = env->GetFieldID(trackingObjectClass, "trackId", "I");
   jfieldID scoreField = env->GetFieldID(trackingObjectClass, "score", "F");
   jfieldID rectField = env->GetFieldID(trackingObjectClass, "rect", "Landroid/graphics/RectF;");
+  jfieldID directionXField = env->GetFieldID(trackingObjectClass, "directionX", "I");
+  jfieldID directionZField = env->GetFieldID(trackingObjectClass, "directionZ", "I");
 
-  // Convert the android bitmap(ARGB8888) to the OpenCV RGBA image. Actually,
+
+    // Convert the android bitmap(ARGB8888) to the OpenCV RGBA image. Actually,
   // the data layout of AGRB8888 is R, G, B, A, it's the same as CV RGBA image,
   // so it is unnecessary to do the conversion of color format, check
   // https://developer.android.com/reference/android/graphics/Bitmap.Config#ARGB_8888
@@ -129,7 +132,8 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeProcess(
       jobject trackingObject = env->AllocObject(trackingObjectClass);
       env->SetIntField(trackingObject, trackIdField, sTrack.track_id);
       env->SetFloatField(trackingObject, scoreField, sTrack.score);
-
+      env->SetIntField(trackingObject, directionXField, (int)sTrack.directionX);
+      env->SetIntField(trackingObject, directionZField, (int)sTrack.directionZ);
       // 创建并设置RectF对象（假设已经存在rectClass和对应的field IDs）
       jclass rectFClass = env->FindClass("android/graphics/RectF");
       jobject rectF = env->AllocObject(rectFClass);

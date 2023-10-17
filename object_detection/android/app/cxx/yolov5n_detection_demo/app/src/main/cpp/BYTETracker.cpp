@@ -14,7 +14,7 @@ BYTETracker::~BYTETracker()
 {
 }
 
-vector<STrack> BYTETracker::update(const vector<Object>& objects)
+vector<STrack> BYTETracker::update(const vector<Object>& objects,int inputW,int inputH)
 {
 
 	////////////////// Step 1: Get detections //////////////////
@@ -232,6 +232,7 @@ vector<STrack> BYTETracker::update(const vector<Object>& objects)
 	{
 		if (this->tracked_stracks[i].is_activated)
 		{
+			this->tracked_stracks[i].updateHistoryAndDirection( inputW,inputH);
 			output_stracks.push_back(this->tracked_stracks[i]);
 		}
 	}
