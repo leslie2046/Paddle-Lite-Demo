@@ -88,6 +88,8 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeProcess(
   jfieldID rectField = env->GetFieldID(trackingObjectClass, "rect", "Landroid/graphics/RectF;");
   jfieldID directionXField = env->GetFieldID(trackingObjectClass, "directionX", "I");
   jfieldID directionZField = env->GetFieldID(trackingObjectClass, "directionZ", "I");
+  jfieldID inputWField = env->GetFieldID(trackingObjectClass, "inputW", "I");
+  jfieldID inputHField = env->GetFieldID(trackingObjectClass, "inputH", "I");
 
 
     // Convert the android bitmap(ARGB8888) to the OpenCV RGBA image. Actually,
@@ -134,6 +136,8 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeProcess(
       env->SetFloatField(trackingObject, scoreField, sTrack.score);
       env->SetIntField(trackingObject, directionXField, (int)sTrack.directionX);
       env->SetIntField(trackingObject, directionZField, (int)sTrack.directionZ);
+      env->SetIntField(trackingObject, inputWField, (int)sTrack.input_w);
+      env->SetIntField(trackingObject, inputHField, (int)sTrack.input_h);
       // 创建并设置RectF对象（假设已经存在rectClass和对应的field IDs）
       jclass rectFClass = env->FindClass("android/graphics/RectF");
       jobject rectF = env->AllocObject(rectFClass);

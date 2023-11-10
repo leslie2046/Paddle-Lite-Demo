@@ -49,6 +49,8 @@ public:
 	DirectionX directionX = StationaryX;  // 存储x轴运动方向
 	DirectionZ directionZ = StationaryZ;  // 存储z轴运动方向
 	std::deque<std::vector<float>> history;  // 存储历史轨迹
+	int input_w;
+	int input_h;
 private:
 	byte_kalman::KalmanFilter kalman_filter;
 };

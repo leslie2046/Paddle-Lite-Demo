@@ -1,6 +1,7 @@
 #include "STrack.h"
 #include "Utils.h"
-const int N = 7;  // 考虑最近N帧
+const int N = 7*2;  // 考虑最近N帧
+const int S = 2;  // 考虑的时长
 STrack::STrack(vector<float> tlwh_, float score)
 {
 	_tlwh.resize(4);
@@ -196,6 +197,8 @@ void STrack::multi_predict(vector<STrack*> &stracks, byte_kalman::KalmanFilter &
 
 void STrack::updateHistoryAndDirection(int inputW,int inputH) {
 	// 更新历史轨迹
+	input_w = inputW;
+	input_h = inputH;
 	history.push_back(tlwh);
 	if (history.size() > N) {
 		history.pop_front();
@@ -221,10 +224,10 @@ void STrack::updateHistoryAndDirection(int inputW,int inputH) {
 	LOGD("updateHistoryAndDirection avg_dx avg_dh(%f,%f)", avg_dx,avg_dh);
 	// 判断x轴运动方向
 	float  abs_avg_dx = std::abs(avg_dx);
-	float threshholdX1=0.004685f*inputW;
-	float threshholdX2=0.007812f*inputW;
-	float threshholdY1=0.004166f*inputH;
-	float threshholdY2=0.006944f*inputH;
+	float threshholdX1=0.004685f*inputW*S;
+	float threshholdX2=0.007812f*inputW*S;
+	float threshholdY1=0.004166f*inputH*S;
+	float threshholdY2=0.006944f*inputH*S;
 	LOGD("updateHistoryAndDirection threshold(%f,%f,%f,%f)", threshholdX1,threshholdX2,threshholdY1,threshholdY2);
 	if (abs_avg_dx < threshholdX1) {
 		directionX = StationaryX;

@@ -13,6 +13,10 @@ public class TrackingObject {
     public int directionX = 0;  // 存储x轴运动方向
     public int directionZ = 0;  // 存储z轴运动方向
 
+    public int inputW = 0;
+
+    public int inputH = 0;
+
     @Override
     public String toString() {
         return "TrackingObject{" +
@@ -21,6 +25,8 @@ public class TrackingObject {
                 ", rect=" + rect +
                 ", directionX=" + directionX +
                 ", directionZ=" + directionZ +
+                ", inputW=" + inputW +
+                ", inputH=" + inputH +
                 '}';
     }
 }
