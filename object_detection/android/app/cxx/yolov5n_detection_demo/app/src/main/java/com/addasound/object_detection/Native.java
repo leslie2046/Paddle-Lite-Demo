@@ -1,9 +1,8 @@
-package com.baidu.paddle.lite.demo.object_detection;
+package com.addasound.object_detection;
 
 import android.graphics.Bitmap;
 
 import java.util.ArrayList;
-import com.baidu.paddle.lite.demo.common.TrackingObject;
 
 public class Native {
     static {

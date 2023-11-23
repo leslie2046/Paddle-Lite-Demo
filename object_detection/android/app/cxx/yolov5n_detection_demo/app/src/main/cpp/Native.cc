@@ -20,13 +20,13 @@
 extern "C" {
 #endif
 /*
- * Class:     com_baidu_paddle_lite_demo_object_detection_Native
+ * Class:     com_addasound_object_detection_Native
  * Method:    nativeInit
  * Signature:
  * (Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;II[F[FF)J
  */
 JNIEXPORT jlong JNICALL
-Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeInit(
+Java_com_addasound_object_1detection_Native_nativeInit(
     JNIEnv *env, jclass thiz, jstring jModelDir, jstring jLabelPath,
     jint cpuThreadNum, jstring jCPUPowerMode, jint inputWidth, jint inputHeight,
     jfloatArray jInputMean, jfloatArray jInputStd, jfloat scoreThreshold) {
@@ -41,7 +41,7 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeInit(
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeSetTrackingClassId(JNIEnv* env, jclass thiz, jlong ctx, jint classId)
+Java_com_addasound_object_1detection_Native_nativeSetTrackingClassId(JNIEnv* env, jclass thiz, jlong ctx, jint classId)
 {
   if (classId < 0)
     return JNI_FALSE;
@@ -50,12 +50,12 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeSetTrackingClassI
   return JNI_TRUE;
 }
 /*
- * Class:     com_baidu_paddle_lite_demo_object_detection_Native
+ * Class:     com_addasound_object_detection_Native
  * Method:    nativeRelease
  * Signature: (J)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeRelease(
+Java_com_addasound_object_1detection_Native_nativeRelease(
     JNIEnv *env, jclass thiz, jlong ctx) {
   if (ctx == 0) {
     return JNI_FALSE;
@@ -66,12 +66,12 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeRelease(
 }
 
 /*
- * Class:     com_baidu_paddle_lite_demo_object_detection_Native
+ * Class:     com_addasound_object_detection_Native
  * Method:    nativeProcess
  * Signature: (JIIIILjava/lang/String;)Z
  */
 JNIEXPORT jboolean JNICALL
-Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeProcess(
+Java_com_addasound_object_1detection_Native_nativeProcess(
     JNIEnv *env, jclass thiz, jlong ctx, jobject jARGB8888ImageBitmap,
     jstring jsavedImagePath, jobject outputs) {
   if (ctx == 0) {
@@ -79,7 +79,7 @@ Java_com_baidu_paddle_lite_demo_object_1detection_Native_nativeProcess(
   }
 // 1. 获取ArrayList和TrackingObject类的引用
   jclass arrayListClass = env->FindClass("java/util/ArrayList");
-  jclass trackingObjectClass = env->FindClass("com/baidu/paddle/lite/demo/common/TrackingObject");
+  jclass trackingObjectClass = env->FindClass("com/addasound/object_detection/TrackingObject");
 
   // 2. 获取ArrayList的add方法和TrackingObject的字段ID
   jmethodID arrayListAddMethod = env->GetMethodID(arrayListClass, "add", "(Ljava/lang/Object;)Z");

@@ -2,6 +2,7 @@ package com.baidu.paddle.lite.demo.common;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
@@ -28,8 +29,8 @@ public class CameraSurfaceView extends GLSurfaceView implements Renderer,
         SurfaceTexture.OnFrameAvailableListener {
     private static final String TAG = CameraSurfaceView.class.getSimpleName();
 
-    public static final int EXPECTED_PREVIEW_WIDTH = 1280;
-    public static final int EXPECTED_PREVIEW_HEIGHT = 720;
+    public static final int EXPECTED_PREVIEW_WIDTH = 640;
+    public static final int EXPECTED_PREVIEW_HEIGHT = 480;
 
 
     protected int numberOfCameras;
@@ -121,6 +122,44 @@ public class CameraSurfaceView extends GLSurfaceView implements Renderer,
                 selectedCameraId = i;
             }
         }
+    }
+    public static void printParameters(Camera camera) {
+        Camera.Parameters parameters = camera.getParameters();
+        List<Integer> supportedFormats = parameters.getSupportedPreviewFormats();
+        System.out.println("Supported Preview Formats:");
+        for (Integer format : supportedFormats) {
+            System.out.println("Format: " + format);
+        }
+
+
+        System.out.println("Supported PICTURE Formats:"+parameters.getPictureFormat());
+
+
+        List<String> supportedFocusModes = parameters.getSupportedFocusModes();
+        System.out.println("Supported Focus Modes:");
+        for (String focusMode : supportedFocusModes) {
+            System.out.println("Focus Mode: " + focusMode);
+        }
+
+        int minExposureCompensation = parameters.getMinExposureCompensation();
+        int maxExposureCompensation = parameters.getMaxExposureCompensation();
+        System.out.println("Exposure Compensation Range: " + minExposureCompensation + " to " + maxExposureCompensation);
+        List<Camera.Size> supportedSizes = parameters.getSupportedPreviewSizes();
+
+        System.out.println("Supported Preview Resolutions:");
+        for (Camera.Size size : supportedSizes) {
+            System.out.println("Width: " + size.width + ", Height: " + size.height);
+        }
+
+        List<Camera.Size> supportedPicSizes = parameters.getSupportedPictureSizes();
+
+        System.out.println("Supported pic Resolutions:");
+        for (Camera.Size size : supportedPicSizes) {
+            System.out.println("Width: " + size.width + ", Height: " + size.height);
+        }
+
+        System.out.println("getFlashMode:"+parameters.getFlashMode());
+
     }
 
     @Override
@@ -267,6 +306,7 @@ public class CameraSurfaceView extends GLSurfaceView implements Renderer,
     public void openCamera() {
         if (disableCamera) return;
         camera = Camera.open(selectedCameraId);
+        printParameters(camera);
         List<Size> supportedPreviewSizes = camera.getParameters().getSupportedPreviewSizes();
         Size previewSize = Utils.getOptimalPreviewSize(supportedPreviewSizes, EXPECTED_PREVIEW_WIDTH,
                 EXPECTED_PREVIEW_HEIGHT);

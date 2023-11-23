@@ -17,10 +17,11 @@ import android.util.Log;
 import android.view.*;
 import android.widget.*;
 
+import com.addasound.object_detection.Native;
 import com.baidu.paddle.lite.demo.common.CameraSurfaceView;
 import com.baidu.paddle.lite.demo.common.Utils;
 import com.baidu.paddle.lite.demo.object_detection.R;
-import com.baidu.paddle.lite.demo.common.TrackingObject;
+import com.addasound.object_detection.TrackingObject;
 
 import java.io.File;
 import java.text.SimpleDateFormat;

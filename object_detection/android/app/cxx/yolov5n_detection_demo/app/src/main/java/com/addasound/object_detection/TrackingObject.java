@@ -1,4 +1,4 @@
-package com.baidu.paddle.lite.demo.common;
+package com.addasound.object_detection;
 
 import android.graphics.Rect;
 import android.graphics.RectF;

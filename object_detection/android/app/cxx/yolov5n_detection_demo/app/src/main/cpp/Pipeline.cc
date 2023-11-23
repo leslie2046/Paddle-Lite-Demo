@@ -269,34 +269,32 @@ void Pipeline::VisualizeTrackerResults(const std::vector<STrack> stracks,
 //    LOGD("VisualizeTrackerResults tlbr(%f,%f)", stracks[i].tlbr[0],stracks[i].tlbr[1],stracks[i].tlbr[2],stracks[i].tlbr[3]);
 
       vector<float> tlwh = stracks[i].tlwh;
-    bool vertical = tlwh[2] / tlwh[3] > 1.6;
-    if (tlwh[2] * tlwh[3] > 20 && !vertical)
-    {
     Scalar s = tracker.get_color(stracks[i].track_id);
     char text1[20];
     if(stracks[i].directionX==StationaryX){
-      sprintf(text1,"%s","stay");
+      sprintf(text1,"%s","S");
     }else if(stracks[i].directionX==Left){
-      sprintf(text1,"%s","left");
+      sprintf(text1,"%s","L");
     }else if(stracks[i].directionX==Right){
-      sprintf(text1,"%s","right");
+      sprintf(text1,"%s","R");
     }
       char text2[20];
       if(stracks[i].directionZ==StationaryZ){
-        sprintf(text2,"%s","stay");
+        sprintf(text2,"%s","S");
       }else if(stracks[i].directionZ==Close){
-        sprintf(text2,"%s","close");
+        sprintf(text2,"%s","C");
       }else if(stracks[i].directionZ==Away){
-        sprintf(text2,"%s","away");
+        sprintf(text2,"%s","A");
       }
-    cv::putText(*rgbaImage, format("%d,%s,%s", stracks[i].track_id,text1,text2), cv::Point2d(tlwh[0]+tlwh[2]-15, tlwh[1]+15),
+      cv::putText(*rgbaImage, format("%d,%s,%s", stracks[i].track_id,text1,text2), cv::Point2d(tlwh[0], tlwh[1]+15),
                     fontFace, fontScale,s, fontThickness);
+      cv::putText(*rgbaImage, format("%s",text2),cv::Point2d(tlwh[0]+tlwh[2]/2, tlwh[1]+tlwh[3]/2),
+                  fontFace, 6.0f,s, 7);
+      cv::putText(*rgbaImage, format("%d",(int)stracks[i].speedZ),cv::Point2d(tlwh[0], tlwh[1]+tlwh[3]/2+100),
+                  fontFace, 6.0f,s, 7);
       rectangle(*rgbaImage, Rect(tlwh[0], tlwh[1], tlwh[2], tlwh[3]), s, 2);
     }
 //      LOGD("VisualizeTrackerResults history(%d)",stracks[i].history.size());
-  }
-
-
 }
 
 void Pipeline::VisualizeResults(const std::vector<Object> &results,

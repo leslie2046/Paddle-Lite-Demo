@@ -2,6 +2,7 @@
 
 #include <opencv2/opencv.hpp>
 #include "kalmanFilter.h"
+#include "TrackFrame.h"
 
 using namespace cv;
 using namespace std;
@@ -48,7 +49,9 @@ public:
 	float score;
 	DirectionX directionX = StationaryX;  // 存储x轴运动方向
 	DirectionZ directionZ = StationaryZ;  // 存储z轴运动方向
-	std::deque<std::vector<float>> history;  // 存储历史轨迹
+	std::deque<TrackFrame> history;  // 存储历史轨迹
+	float speedX = 0.0f;
+	float speedZ = 0.0f;
 	int input_w;
 	int input_h;
 private:

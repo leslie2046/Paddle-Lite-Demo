@@ -1,7 +1,7 @@
 #include "STrack.h"
 #include "Utils.h"
-const int N = 7*2;  // 考虑最近N帧
-const int S = 2;  // 考虑的时长
+const int N = 7;  // 考虑最近N帧
+
 STrack::STrack(vector<float> tlwh_, float score)
 {
 	_tlwh.resize(4);
@@ -195,52 +195,110 @@ void STrack::multi_predict(vector<STrack*> &stracks, byte_kalman::KalmanFilter &
 	}
 }
 
+// 判断数组趋势的函数
+DirectionZ determine_trend(float* array, int size, float delta) {
+	int up=0;//up
+	int down=0;//down
+	if (size < 2) {
+		return StationaryZ; // 数组元素不足以判断趋势
+	}
+	DirectionZ trend = StationaryZ;
+	for (int i = 1; i < size; ++i) {
+		if (array[i] > array[i - 1] + delta) { // 明确上升
+			if (trend == Close) {
+				return StationaryZ; // 已经有下降趋势，现在上升，所以不确定
+			}
+			trend = Away;
+			up++;
+		} else if (array[i] < array[i - 1] - delta) { // 明确下降
+			if (trend == Away) {
+				return StationaryZ; // 已经有上升趋势，现在下降，所以不确定
+			}
+			trend = Close;
+			down++;
+		}
+		// 如果两个数在delta范围内，我们认为它们相等，趋势不变
+	}
+	if(up>=7){
+		trend = Away;
+	}else if(up<=3){
+		trend = Close;
+	}else{
+		trend = StationaryZ;
+	}
+	return trend; // 返回最终的趋势
+}
+
+float calculateEMA(float newData, float previousEMA, float alpha) {
+	return alpha * newData + (1 - alpha) * previousEMA;
+}
+
 void STrack::updateHistoryAndDirection(int inputW,int inputH) {
 	// 更新历史轨迹
 	input_w = inputW;
 	input_h = inputH;
-	history.push_back(tlwh);
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	long long milliseconds = (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    TrackFrame trackFrame = TrackFrame(tlwh,milliseconds);
+	if(history.size()==1){
+		history.push_back(trackFrame);
+		history.push_back(trackFrame);
+		history.pop_front();//丢弃第一个
+	}else{
+		history.push_back(trackFrame);
+	}
 	if (history.size() > N) {
 		history.pop_front();
 	}
-
 	// 如果历史轨迹不足N帧，跳过此次判断
 	if (history.size() < N) {
 		return;
 	}
-
 	// 计算平均位置和尺寸变化
-	float avg_dx = 0, avg_dh = 0;
-//	for (int i = 1; i < N; ++i) {
-//		float centerX0 = history[i-1][0]+ history[i-1][2]/2;
-//		float centerX1 = history[i][0]+ history[i][2]/2;
-//		avg_dx += (centerX1 - centerX0);
-//		avg_dh += (history[i][3] - history[i - 1][3]);
-//	}
-	avg_dx = history[N-1][0]+ history[N-1][2]/2-history[0][0]- history[0][2]/2;
-	avg_dh = history[N-1][3] - history[0][3];
-	avg_dx /= (N - 1);
-	avg_dh /= (N - 1);
-	LOGD("updateHistoryAndDirection avg_dx avg_dh(%f,%f)", avg_dx,avg_dh);
-	// 判断x轴运动方向
-	float  abs_avg_dx = std::abs(avg_dx);
-	float threshholdX1=0.004685f*inputW*S;
-	float threshholdX2=0.007812f*inputW*S;
-	float threshholdY1=0.004166f*inputH*S;
-	float threshholdY2=0.006944f*inputH*S;
-	LOGD("updateHistoryAndDirection threshold(%f,%f,%f,%f)", threshholdX1,threshholdX2,threshholdY1,threshholdY2);
-	if (abs_avg_dx < threshholdX1) {
+    float emaX0 =history[0].tlwh[0]+history[0].tlwh[2]/2;
+	float emaX = emaX0;  // 初始EMA值，可以设置为第一个数据点的值
+	double alpha = 0.3;  // 指数加权移动平均的权重
+    float emaZH0 = history[0].tlwh[1];
+    float emaZF0 = history[0].tlwh[1]+history[0].tlwh[3];
+    float emaZH = emaZH0;
+    float emaZF = emaZF0;
+	for (int i = 0; i < history.size(); ++i) {
+        emaX = calculateEMA(history[i].tlwh[0]+ history[i].tlwh[2]/2, emaX, alpha);
+        emaZH = calculateEMA(history[i].tlwh[1], emaZH, alpha);
+        emaZF = calculateEMA(history[i].tlwh[1]+history[i].tlwh[3], emaZF, alpha);
+	}
+	float timeMS = history[N-1].timeStamp-history[0].timeStamp;
+	float timeSF = (float)timeMS/1000;
+//    speedX = (emaX-emaX0)/timeSF;
+	speedX =( (history[N-1].tlwh[0]+ history[N-1].tlwh[2]/2)-(history[0].tlwh[0]+ history[0].tlwh[2]/2))/timeSF;
+//    float height1 = history[N-1].tlwh[1] - history[0].tlwh[1];//上边位移
+//    float height2 = (history[N-1].tlwh[1]+history[N-1].tlwh[3])-(history[0].tlwh[1]+history[0].tlwh[3]);//下边位移
+	float height1 = emaZH - emaZH0;//上边位移
+	float height2 = emaZF - emaZF0;//下边位移
+	speedZ = ((std::abs(height1)>std::abs(height2))?height1:-height2)/timeSF;
+	LOGD("updateHistoryAndDirection speedX speedZ(%.1f,%f,%f)", timeSF,speedX,speedZ);
+	float threshholdX1=0.02343f*inputW;//判定为静止的阈值
+	float threshholdX2=0.03515f*inputW;//判定为运动的阈值
+//	float threshholdZ1=0.02083f*inputH;//判定为静止的阈值
+//	float threshholdZ2=0.03125*inputH;//判定为运动的阈值
+//	float threshholdX1=15.0f;//判定为静止的阈值
+//	float threshholdX2=22.5f;//判定为运动的阈值
+	float threshholdZ1=10.0f;//判定为静止的阈值
+	float threshholdZ2=20.0f;//判定为运动的阈值
+	float  abs_speedX = std::abs(speedX);
+	if (abs_speedX < threshholdX1) {
 		directionX = StationaryX;
-	} else if (abs_avg_dx < threshholdX2) {
+	} else if (abs_speedX < threshholdX2) {
 	}else {
-		directionX = (avg_dx < 0) ? Left : Right;
+		directionX = (speedX < 0) ? Left : Right;
 	}
 	// 判断z轴运动方向
-	float  abs_avg_dh = std::abs(avg_dh);
-	if ( abs_avg_dh < threshholdY1) {
+	float  abs_speedZ = std::abs(speedZ);
+	if(abs_speedZ<threshholdZ1){
 		directionZ = StationaryZ;
-	} else if(abs_avg_dh < threshholdY2){
-	}else {
-		directionZ = (avg_dh < 0) ? Away : Close;
+	}else if(abs_speedZ<threshholdZ2){
+	}else{
+		directionZ = (speedZ < 0) ? Close : Away;
 	}
 }
