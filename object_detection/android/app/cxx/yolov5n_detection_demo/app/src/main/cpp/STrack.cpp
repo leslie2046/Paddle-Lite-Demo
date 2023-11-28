@@ -280,12 +280,12 @@ void STrack::updateHistoryAndDirection(int inputW,int inputH) {
 	LOGD("updateHistoryAndDirection speedX speedZ(%.1f,%f,%f)", timeSF,speedX,speedZ);
 	float threshholdX1=0.02343f*inputW;//判定为静止的阈值
 	float threshholdX2=0.03515f*inputW;//判定为运动的阈值
-	float threshholdZ1=0.02083f*inputH;//判定为静止的阈值
-	float threshholdZ2=0.04166f*inputH;//判定为运动的阈值
+//	float threshholdZ1=0.02083f*inputH;//判定为静止的阈值
+//	float threshholdZ2=0.04166f*inputH;//判定为运动的阈值
 //	float threshholdX1=15.0f;//判定为静止的阈值
 //	float threshholdX2=22.5f;//判定为运动的阈值
-//	float threshholdZ1=10.0f;//判定为静止的阈值
-//	float threshholdZ2=20.0f;//判定为运动的阈值
+	float threshholdZ1=10.0f;//判定为静止的阈值
+	float threshholdZ2=25.0f;//判定为运动的阈值
 	float  abs_speedX = std::abs(speedX);
 	if (abs_speedX < threshholdX1) {
 		directionX = StationaryX;
