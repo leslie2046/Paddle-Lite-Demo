@@ -49,6 +49,31 @@ Java_com_addasound_object_1detection_Native_nativeSetTrackingClassId(JNIEnv* env
   pipeline->setTrackingClassId(classId);
   return JNI_TRUE;
 }
+
+JNIEXPORT jboolean JNICALL
+Java_com_addasound_object_1detection_Native_nativeSetDynamicArea(JNIEnv* env, jclass thiz, jlong ctx, jobject area)
+{
+  Pipeline *pipeline = reinterpret_cast<Pipeline *>(ctx);
+  jclass arrayListClass = env->GetObjectClass(area);
+  jmethodID sizeMethod = env->GetMethodID(arrayListClass, "size", "()I");
+  jmethodID getMethod = env->GetMethodID(arrayListClass, "get", "(I)Ljava/lang/Object;");
+  // 获取ArrayList的大小
+  jint size = env->CallIntMethod(area, sizeMethod);
+  // 创建vector<cv::Point2f>对象
+  std::vector<cv::Point2f> points;
+  // 遍历ArrayList并将数据添加到vector中
+  for (int i = 0; i < size; i++) {
+    jobject pointObj = env->CallObjectMethod(area, getMethod, i);
+    jclass pointClass = env->GetObjectClass(pointObj);
+    jfieldID xField = env->GetFieldID(pointClass, "x", "F");
+    jfieldID yField = env->GetFieldID(pointClass, "y", "F");
+    jfloat x = env->GetFloatField(pointObj, xField);
+    jfloat y = env->GetFloatField(pointObj, yField);
+    points.push_back(cv::Point2f(x, y));
+    env->DeleteLocalRef(pointObj);
+  }
+  return pipeline->setDynamicArea(points);
+}
 /*
  * Class:     com_addasound_object_detection_Native
  * Method:    nativeRelease
@@ -90,7 +115,8 @@ Java_com_addasound_object_1detection_Native_nativeProcess(
   jfieldID directionZField = env->GetFieldID(trackingObjectClass, "directionZ", "I");
   jfieldID inputWField = env->GetFieldID(trackingObjectClass, "inputW", "I");
   jfieldID inputHField = env->GetFieldID(trackingObjectClass, "inputH", "I");
-
+  jfieldID areaStateField = env->GetFieldID(trackingObjectClass, "areaState", "I");
+  jfieldID areaActionField = env->GetFieldID(trackingObjectClass, "areaAction", "I");
 
     // Convert the android bitmap(ARGB8888) to the OpenCV RGBA image. Actually,
   // the data layout of AGRB8888 is R, G, B, A, it's the same as CV RGBA image,
@@ -138,6 +164,8 @@ Java_com_addasound_object_1detection_Native_nativeProcess(
       env->SetIntField(trackingObject, directionZField, (int)sTrack.directionZ);
       env->SetIntField(trackingObject, inputWField, (int)sTrack.input_w);
       env->SetIntField(trackingObject, inputHField, (int)sTrack.input_h);
+      env->SetIntField(trackingObject, areaStateField, (int)sTrack.areaState);
+      env->SetIntField(trackingObject, areaActionField, (int)sTrack.areaAction);
       // 创建并设置RectF对象（假设已经存在rectClass和对应的field IDs）
       jclass rectFClass = env->FindClass("android/graphics/RectF");
       jobject rectF = env->AllocObject(rectFClass);

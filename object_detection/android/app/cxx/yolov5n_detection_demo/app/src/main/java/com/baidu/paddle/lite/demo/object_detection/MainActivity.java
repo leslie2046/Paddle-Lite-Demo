@@ -22,8 +22,11 @@ import com.baidu.paddle.lite.demo.common.CameraSurfaceView;
 import com.baidu.paddle.lite.demo.common.Utils;
 import com.baidu.paddle.lite.demo.object_detection.R;
 import com.addasound.object_detection.TrackingObject;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -93,6 +96,11 @@ public class MainActivity extends Activity implements View.OnClickListener, Came
         ArrayList<TrackingObject> outputs = new ArrayList<TrackingObject> ();
 
         boolean modified = predictor.process(ARGB8888ImageBitmap, savedImagePath,outputs);
+        String areaJson = "[{\"x\":323,\"y\":2},{\"x\":616,\"y\":2},{\"x\":569,\"y\":432},{\"x\":536,\"y\":417},{\"x\":326,\"y\":469}]";
+        Type type = new TypeToken<ArrayList<PointF>>() {
+        }.getType();
+        ArrayList<PointF> area = new Gson().fromJson(areaJson, type);
+        predictor.setDynamicArea(area);
         Log.d(TAG, outputs.toString());
         if (!savedImagePath.isEmpty()) {
             synchronized (this) {

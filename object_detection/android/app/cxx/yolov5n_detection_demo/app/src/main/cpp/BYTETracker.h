@@ -15,6 +15,11 @@ public:
 
 	vector<STrack> update(const vector<Object>& objects,int inputW,int inputH);
 	Scalar get_color(int idx);
+	bool setDynamicArea(std::vector<cv::Point2f> area);
+	double pointPolygonTest(cv::Point2f point);
+
+public:
+	std::vector<cv::Point2f> area_;
 
 private:
 	vector<STrack*> joint_stracks(vector<STrack*> &tlista, vector<STrack> &tlistb);
@@ -44,4 +49,5 @@ private:
 	vector<STrack> lost_stracks;
 	vector<STrack> removed_stracks;
 	byte_kalman::KalmanFilter kalman_filter;
+
 };

@@ -12,10 +12,10 @@ public class TrackingObject {
     public RectF rect = new RectF();
     public int directionX = 0;  // 存储x轴运动方向
     public int directionZ = 0;  // 存储z轴运动方向
-
     public int inputW = 0;
-
     public int inputH = 0;
+    public int areaState = 0;//0:功能未启用  1:in   2:out
+    public int areaAction = 0;//0:功能未启用 1:not change 2:in to out 3:out to in
 
     @Override
     public String toString() {
@@ -27,6 +27,8 @@ public class TrackingObject {
                 ", directionZ=" + directionZ +
                 ", inputW=" + inputW +
                 ", inputH=" + inputH +
+                ", areaState=" + areaState +
+                ", areaAction=" + areaAction +
                 '}';
     }
 }

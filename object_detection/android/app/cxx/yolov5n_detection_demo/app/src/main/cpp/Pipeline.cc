@@ -258,18 +258,17 @@ Pipeline::Pipeline(const std::string &modelDir, const std::string &labelPath,
                                scoreThreshold));
 }
 
-void Pipeline::VisualizeTrackerResults(const std::vector<STrack> stracks,
-                                cv::Mat *rgbaImage) {
+
+
+void Pipeline::VisualizeTrackerResults( const std::vector<STrack> stracks,cv::Mat *rgbaImage) {
     int fontFace = cv::FONT_HERSHEY_PLAIN;
     double fontScale = 1.5f;
     float fontThickness = 2.0f;
   for (int i = 0; i < stracks.size(); i++)
   {
-//    LOGD("VisualizeTrackerResults tlwh(%f,%f)", stracks[i].tlwh[0],stracks[i].tlwh[1],stracks[i].tlwh[2],stracks[i].tlwh[3]);
-//    LOGD("VisualizeTrackerResults tlbr(%f,%f)", stracks[i].tlbr[0],stracks[i].tlbr[1],stracks[i].tlbr[2],stracks[i].tlbr[3]);
-
-      vector<float> tlwh = stracks[i].tlwh;
-    Scalar s = tracker.get_color(stracks[i].track_id);
+    STrack sTrack = stracks[i];
+    vector<float> tlwh = sTrack.tlwh;
+    Scalar s = tracker.get_color(sTrack.track_id);
     char text1[20];
     if(stracks[i].directionX==StationaryX){
       sprintf(text1,"%s","S");
@@ -286,20 +285,34 @@ void Pipeline::VisualizeTrackerResults(const std::vector<STrack> stracks,
       }else if(stracks[i].directionZ==Away){
         sprintf(text2,"%s","A");
       }
-      cv::putText(*rgbaImage, format("%d", stracks[i].track_id), cv::Point2d(tlwh[0]+tlwh[2]-20, tlwh[1]+20),
+      cv::putText(*rgbaImage, format("%d", sTrack.track_id), cv::Point2d(tlwh[0]+tlwh[2]-20, tlwh[1]+20),
                     fontFace, fontScale,s, fontThickness);
 //      cv::putText(*rgbaImage, format("x:%d,%s",(int)stracks[i].speedX,text1),cv::Point2d(tlwh[0], tlwh[1]+tlwh[3]/2),
 //                  fontFace, 3.0f,s, fontThickness);
       cv::putText(*rgbaImage, format("%d,%d",(int)tlwh[0],(int)tlwh[1]),cv::Point2d(tlwh[0],tlwh[1]+20),
-                fontFace, 1,s, fontThickness);
+                fontFace, 1,s, 1);
     cv::putText(*rgbaImage, format("%d,%d",(int)(tlwh[0]+tlwh[2]),(int)(tlwh[1]+tlwh[3])),cv::Point2d(tlwh[0]+tlwh[2]-100, tlwh[1]+tlwh[3]-20),
-                fontFace, 1,s, fontThickness);
-      cv::putText(*rgbaImage, format("z:%d,%s",(int)stracks[i].speedZ,text2),cv::Point2d(tlwh[0]+tlwh[2]/2, tlwh[1]+tlwh[3]/2),
+                fontFace, 1,s, 1);
+      cv::putText(*rgbaImage, format("z:%.2f,%s",stracks[i].speedZ,text2),cv::Point2d(tlwh[0]+tlwh[2]/2, tlwh[1]+tlwh[3]/2),
                   fontFace, fontScale,s, fontThickness);
       rectangle(*rgbaImage, Rect(tlwh[0], tlwh[1], tlwh[2], tlwh[3]), s, 2);
+    if(!tracker.area_.empty()){
+      cv::putText(*rgbaImage, format("%s",stracks[i].areaState==1?"in":"out"),cv::Point2d(tlwh[0]+tlwh[2]/2, tlwh[1]+tlwh[3]/2+100),
+                  fontFace, fontScale,s, fontThickness);
+      if(stracks[i].areaAction==2){
+        out_count++;
+      }
+      if(stracks[i].areaAction==3){
+        in_count++;
+      }
+      cv::Point2f point2F;
+      point2F.x = tlwh[0] + tlwh[2] / 2;
+      point2F.y = tlwh[1] + tlwh[3];
+      cv::circle(*rgbaImage,point2F,5, cv::Scalar(0, 255, 0),-1);
     }
-//      LOGD("VisualizeTrackerResults history(%d)",stracks[i].history.size());
+  }
 }
+
 
 void Pipeline::VisualizeResults(const std::vector<Object> &results,
                                 cv::Mat *rgbaImage) {
@@ -360,10 +373,30 @@ void Pipeline::VisualizeStatus(double preprocessTime, double predictTime,
   offset.y += textSize.height;
   cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
               fontThickness);
+  sprintf(text, "in: %d",in_count);
+  offset.y += textSize.height;
+  cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
+              fontThickness);
+  sprintf(text, "out: %d",out_count);
+  offset.y += textSize.height;
+  cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
+              fontThickness);
+}
+
+void Pipeline::drawPolygon(const std::vector<cv::Point2f>& area, cv::Mat *rgbaImage) {
+  std::vector<cv::Point> polygon;
+  for (const auto& point : area) {
+    polygon.push_back(cv::Point(static_cast<int>(point.x), static_cast<int>(point.y)));
+  }
+  cv::polylines(*rgbaImage, polygon, true, cv::Scalar(255, 0, 0), 3); // 红色线条，线宽为3
 }
 
 void Pipeline::setTrackingClassId(int classId){
   trackingClassId = classId;
+}
+
+bool Pipeline::setDynamicArea(std::vector<cv::Point2f> area) {
+  return tracker.setDynamicArea(area);
 }
 
 bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vector<STrack>* outputs) {
@@ -381,7 +414,7 @@ bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vecto
   VisualizeTrackerResults(output_stracks,&rgbaImage);
 //   Visualize the status(performance data) to the origin image
   VisualizeStatus(preprocessTime, predictTime, postprocessTime,trackProcessTime, &rgbaImage);
-
+  drawPolygon(tracker.area_,&rgbaImage);
   // Dump modified image if savedImagePath is set
   if (!savedImagePath.empty()) {
     cv::Mat bgrImage;

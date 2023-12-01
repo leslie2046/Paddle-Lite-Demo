@@ -27,7 +27,6 @@
 #include <opencv2/imgproc.hpp>         // NOLINT
 #include <string>                      // NOLINT
 #include <vector>                      // NOLINT
-
 struct Object {
   std::string class_name;
   cv::Scalar fill_color;
@@ -81,7 +80,6 @@ private: // NOLINT
   const float nmsThresh_ = 0.45;
   float ratio_ = 1.0;
   int inputX, inputY, inputW, inputH;
-
 };
 
 class Pipeline {
@@ -93,6 +91,8 @@ public: // NOLINT
 
   bool Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vector<STrack>* output_stracks); // NOLINT
   void setTrackingClassId(int classId);
+  bool setDynamicArea(std::vector<cv::Point2f> area);
+
 
 private: // NOLINT
   // Visualize the results to origin image
@@ -101,9 +101,13 @@ private: // NOLINT
   // Visualize the status(performace data) to origin image
   void VisualizeStatus(double preprocessTime, double predictTime,
                        double postprocessTime,double trackTime, cv::Mat *rgbaImage);
-  void VisualizeTrackerResults(const std::vector<STrack> stracks,
+  void VisualizeTrackerResults( const std::vector<STrack> stracks,
                                            cv::Mat *rgbaImage);
+  void drawPolygon(const std::vector<cv::Point2f>& area, cv::Mat *rgbaImage);
+
 private: // NOLINT
   std::shared_ptr<Detector> detector_;
+  int in_count=0;
+  int out_count=0;
 
 };

@@ -1,8 +1,14 @@
 package com.addasound.object_detection;
 
 import android.graphics.Bitmap;
+import android.graphics.Point;
+import android.graphics.PointF;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class Native {
     static {
@@ -31,7 +37,12 @@ public class Native {
                 inputStd,
                 scoreThreshold);
         nativeSetTrackingClassId(ctx,0);
+
         return ctx == 0;
+    }
+
+    public   boolean setDynamicArea(ArrayList<PointF> area){
+        return nativeSetDynamicArea(ctx,area);
     }
     public boolean release() {
         if (ctx == 0) {
@@ -63,4 +74,6 @@ public class Native {
     public static native boolean nativeProcess(long ctx, Bitmap ARGB888ImageBitmap, String savedImagePath, ArrayList<TrackingObject> outputs);
 
     public static native boolean nativeSetTrackingClassId(long ctx,int classId);
+
+    public static native boolean nativeSetDynamicArea(long ctx,ArrayList<PointF> area);
 }

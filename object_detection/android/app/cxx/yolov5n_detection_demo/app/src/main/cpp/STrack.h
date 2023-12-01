@@ -31,6 +31,7 @@ public:
 	void re_activate(STrack &new_track, int frame_id, bool new_id = false);
 	void update(STrack &new_track, int frame_id);
 	void updateHistoryAndDirection(int inputW,int inputH);
+	void updateAreaStateAndAction(const std::vector<cv::Point2f> area);
 
 public:
 	bool is_activated;
@@ -52,6 +53,8 @@ public:
 	std::deque<TrackFrame> history;  // 存储历史轨迹
 	float speedX = 0.0f;
 	float speedZ = 0.0f;
+    int areaState = 0;//0:功能未启用  1:in   2:out
+	int areaAction = 0;//0:功能未启用 1:not change 2:in to out 3:out to in
 	int input_w;
 	int input_h;
 private:

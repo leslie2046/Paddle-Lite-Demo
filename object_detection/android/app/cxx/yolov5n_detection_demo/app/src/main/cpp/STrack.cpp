@@ -233,6 +233,46 @@ float calculateEMA(float newData, float previousEMA, float alpha) {
 	return alpha * newData + (1 - alpha) * previousEMA;
 }
 
+void STrack:: updateAreaStateAndAction(const std::vector<cv::Point2f> area) {
+	int areaState_ = 0;
+	int areaAction_ = 0;
+	if (area.empty()) {
+		areaState = 0;
+		areaAction = 0;
+	} else {
+		cv::Point2f point2F;
+		point2F.x = tlwh[0] + tlwh[2] / 2;
+		point2F.y = tlwh[1] + tlwh[3];
+		//point2F.y = (tlwh[1]+tlwh[3])<stracks[i].input_h?tlwh[1]+tlwh[3]:stracks[i].input_h-1;
+		double distance = cv::pointPolygonTest(area, point2F, true);
+		if (distance < 0) {
+			areaState_ = 1;
+		} else {
+			areaState_ = 2;
+		}
+		if (areaState_ == 1) {
+			if (areaState == 1) {
+				areaAction = 1;
+			} else if(areaState == 2) {
+				areaAction = 3;
+			}else{
+				//TODO
+			}
+		} else if (areaState_ == 2) {
+			if (areaState == 2) {
+				areaAction = 1;
+			} else if(areaState == 1) {
+				areaAction = 2;
+			}else{
+				//TODO
+			}
+		} else {
+			//TODO
+		}
+		areaState = areaState_;
+		LOGD("updateAreaStateAndAction  (%d,%d)", areaState, areaAction);
+	}
+}
 void STrack::updateHistoryAndDirection(int inputW,int inputH) {
 	// 更新历史轨迹
 	input_w = inputW;
@@ -277,7 +317,8 @@ void STrack::updateHistoryAndDirection(int inputW,int inputH) {
 	float height1 = emaZH - emaZH0;//上边位移
 	float height2 = emaZF - emaZF0;//下边位移
 	speedZ = ((std::abs(height1)>std::abs(height2))?height1:-height2)/timeSF;
-	LOGD("updateHistoryAndDirection speedX speedZ(%.1f,%f,%f)", timeSF,speedX,speedZ);
+//    speedZ = ((history[N-1].tlwh[1] - history[0].tlwh[1])/std::abs(history[0].tlwh[1]-240))/timeS;
+	LOGD("speedZ %f ",speedZ);
 	float threshholdX1=0.02343f*inputW;//判定为静止的阈值
 	float threshholdX2=0.03515f*inputW;//判定为运动的阈值
 //	float threshholdZ1=0.02083f*inputH;//判定为静止的阈值
@@ -285,7 +326,7 @@ void STrack::updateHistoryAndDirection(int inputW,int inputH) {
 //	float threshholdX1=15.0f;//判定为静止的阈值
 //	float threshholdX2=22.5f;//判定为运动的阈值
 	float threshholdZ1=10.0f;//判定为静止的阈值
-	float threshholdZ2=25.0f;//判定为运动的阈值
+	float threshholdZ2=30.0f;//判定为运动的阈值
 	float  abs_speedX = std::abs(speedX);
 	if (abs_speedX < threshholdX1) {
 		directionX = StationaryX;

@@ -13,7 +13,11 @@ BYTETracker::BYTETracker(int frame_rate, int track_buffer)
 BYTETracker::~BYTETracker()
 {
 }
-
+bool BYTETracker::setDynamicArea(std::vector<cv::Point2f> area) {
+	area_.clear();
+	area_.insert(area_.end(),area.begin(),area.end());
+	return true;
+}
 vector<STrack> BYTETracker::update(const vector<Object>& objects,int inputW,int inputH)
 {
 
@@ -233,6 +237,7 @@ vector<STrack> BYTETracker::update(const vector<Object>& objects,int inputW,int 
 		if (this->tracked_stracks[i].is_activated)
 		{
 			this->tracked_stracks[i].updateHistoryAndDirection( inputW,inputH);
+			this->tracked_stracks[i].updateAreaStateAndAction(area_);
 			output_stracks.push_back(this->tracked_stracks[i]);
 		}
 	}
