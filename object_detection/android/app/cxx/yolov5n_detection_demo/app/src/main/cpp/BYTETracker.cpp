@@ -7,7 +7,7 @@ BYTETracker::BYTETracker(int frame_rate, int track_buffer)
 	high_thresh = 0.6;
 	match_thresh = 0.8;
 	frame_id = 0;
-	max_time_lost = int(frame_rate / 4.0 * track_buffer);
+	max_time_lost = int(frame_rate / 10.0 * track_buffer);
 }
 
 BYTETracker::~BYTETracker()
@@ -18,6 +18,15 @@ bool BYTETracker::setDynamicArea(std::vector<cv::Point2f> area) {
 	area_.insert(area_.end(),area.begin(),area.end());
 	return true;
 }
+
+bool BYTETracker::setDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn) {
+	lineOut_.clear();
+	lineIn_.clear();
+	lineOut_.insert(lineOut_.end(),lineOut.begin(),lineOut.end());
+	lineIn_.insert(lineIn_.end(),lineIn.begin(),lineIn.end());
+	return true;
+}
+
 vector<STrack> BYTETracker::update(const vector<Object>& objects,int inputW,int inputH)
 {
 
@@ -236,8 +245,9 @@ vector<STrack> BYTETracker::update(const vector<Object>& objects,int inputW,int 
 	{
 		if (this->tracked_stracks[i].is_activated)
 		{
-			this->tracked_stracks[i].updateHistoryAndDirection( inputW,inputH);
+			this->tracked_stracks[i].updateHistory( inputW,inputH);
 			this->tracked_stracks[i].updateAreaStateAndAction(area_);
+			this->tracked_stracks[i].updateLineStateAndAction(lineOut_,lineIn_);
 			output_stracks.push_back(this->tracked_stracks[i]);
 		}
 	}

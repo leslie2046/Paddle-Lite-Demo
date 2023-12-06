@@ -44,6 +44,10 @@ public class Native {
     public   boolean setDynamicArea(ArrayList<PointF> area){
         return nativeSetDynamicArea(ctx,area);
     }
+
+    public   boolean setDynamicLine(ArrayList<PointF> lineOut,ArrayList<PointF> lineIn){
+        return nativeSetDynamicLine(ctx,lineOut,lineIn);
+    }
     public boolean release() {
         if (ctx == 0) {
             return false;
@@ -76,4 +80,6 @@ public class Native {
     public static native boolean nativeSetTrackingClassId(long ctx,int classId);
 
     public static native boolean nativeSetDynamicArea(long ctx,ArrayList<PointF> area);
+
+    public static native boolean nativeSetDynamicLine(long ctx,ArrayList<PointF> lineOut,ArrayList<PointF> lineIn);
 }

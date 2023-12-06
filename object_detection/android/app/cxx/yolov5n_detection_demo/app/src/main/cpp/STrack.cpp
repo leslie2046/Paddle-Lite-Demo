@@ -233,17 +233,131 @@ float calculateEMA(float newData, float previousEMA, float alpha) {
 	return alpha * newData + (1 - alpha) * previousEMA;
 }
 
+double distance_to_line(double x, double y, double x1, double y1, double x2, double y2) {
+	double cross = (x2 - x1) * (x - x1) + (y2 - y1) * (y - y1);
+
+	if (cross <= 0) {
+		return std::sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1));
+	}
+
+	double d2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+
+	if (cross >= d2) {
+		return std::sqrt((x - x2) * (x - x2) + (y - y2) * (y - y2));
+	}
+
+	double r = cross / d2;
+	double px = x1 + (x2 - x1) * r;
+	double py = y1 + (y2 - y1) * r;
+
+	return std::sqrt((x - px) * (x - px) + (py - y1) * (py - y1));
+}
+
+double vector_angle(const cv::Point2f& midpoint, const cv::Point2f& previous_midpoint) {
+	cv::Point2f diff = midpoint - previous_midpoint;
+	double angle = atan2(diff.y, diff.x) * 180.0 / CV_PI;
+	return angle;
+}
+bool onSegment(cv::Point2f p, cv::Point2f q, cv::Point2f r) {
+	return (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
+			q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y));
+}
+int orientation(cv::Point2f p, cv::Point2f q, cv::Point2f r) {
+	float val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+	if (val == 0) return 0;
+	return (val > 0) ? 1 : 2;
+}
+
+bool doIntersect(cv::Point2f p1, cv::Point2f q1, cv::Point2f p2, cv::Point2f q2) {
+	int o1 = orientation(p1, q1, p2);
+	int o2 = orientation(p1, q1, q2);
+	int o3 = orientation(p2, q2, p1);
+	int o4 = orientation(p2, q2, q1);
+
+	if (o1 != o2 && o3 != o4)
+		return true;
+
+	if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+	if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+	if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+	if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+
+	return false;
+}
+void STrack::updateLineStateAndAction(const std::vector<cv::Point2f> lineOut,const std::vector<cv::Point2f> lineIn){
+	if(lineOut.size()<2||lineIn.size()<2){
+		lineState = 0;
+		lineAction = 0;
+		return;
+	}
+	if(history.size()<2){
+		lineState = 1;
+		return;
+	}
+	cv::Point2f point2F;
+	point2F.x = tlwh[0] + tlwh[2] / 2;
+	point2F.y = tlwh[1] + tlwh[3];
+	cv::Point2f prePoint2F;
+	prePoint2F.x = history[history.size()-2].tlwh[0] + history[history.size()-2].tlwh[2] / 2;
+	prePoint2F.y = history[history.size()-2].tlwh[1] + history[history.size()-2].tlwh[3];
+	bool isIntersectOut = doIntersect(lineOut[0],lineOut[1],prePoint2F,point2F);
+	bool isIntersectIn = doIntersect(lineIn[0],lineIn[1],prePoint2F,point2F);
+	if(!isIntersectOut&&!isIntersectIn){
+		lineAction = 1;
+		return;
+	}
+
+	if(isIntersectOut&&isIntersectIn){
+		double distanceOut = distance_to_line(prePoint2F.x,prePoint2F.y,lineOut[0].x,lineOut[0].y,lineOut[1].x,lineOut[1].y);
+		double distanceIn = distance_to_line(prePoint2F.x,prePoint2F.y,lineIn[0].x,lineIn[0].y,lineIn[1].x,lineIn[1].y);
+		//一次跨越两条线
+		if(distanceOut < distanceIn){
+			lineAction = 3;
+			lineState = 3;
+		}else{
+			lineAction = 2;
+			lineState = 2;
+		}
+		return;
+	}
+	if(isIntersectOut){
+		if(lineState == 0||lineState == 1){
+			lineState = 2;
+			lineAction = 1;
+		}else if(lineState == 2){
+			lineState = 2;
+			lineAction = 1;
+		}else if(lineState == 3){
+			lineState = 2;
+			lineAction = 2;
+		}else{
+			//TODO
+		}
+	}else{
+		if(lineState == 0||lineState == 1){
+			lineState = 3;
+			lineAction = 1;
+		}else if(lineState == 2){
+			lineState = 3;
+			lineAction = 3;
+		}else if(lineState == 3){
+			lineState = 3;
+			lineAction = 1;
+		}else{
+			//TODO
+		}
+	}
+}
+
 void STrack:: updateAreaStateAndAction(const std::vector<cv::Point2f> area) {
 	int areaState_ = 0;
-	int areaAction_ = 0;
-	if (area.empty()) {
+	if (area.size()<3) {
 		areaState = 0;
 		areaAction = 0;
 	} else {
 		cv::Point2f point2F;
 		point2F.x = tlwh[0] + tlwh[2] / 2;
 		point2F.y = tlwh[1] + tlwh[3];
-		//point2F.y = (tlwh[1]+tlwh[3])<stracks[i].input_h?tlwh[1]+tlwh[3]:stracks[i].input_h-1;
 		double distance = cv::pointPolygonTest(area, point2F, true);
 		if (distance < 0) {
 			areaState_ = 1;
@@ -273,7 +387,9 @@ void STrack:: updateAreaStateAndAction(const std::vector<cv::Point2f> area) {
 		LOGD("updateAreaStateAndAction  (%d,%d)", areaState, areaAction);
 	}
 }
-void STrack::updateHistoryAndDirection(int inputW,int inputH) {
+
+
+void STrack::updateHistory(int inputW,int inputH) {
 	// 更新历史轨迹
 	input_w = inputW;
 	input_h = inputH;
@@ -290,56 +406,5 @@ void STrack::updateHistoryAndDirection(int inputW,int inputH) {
 	}
 	if (history.size() > N) {
 		history.pop_front();
-	}
-	// 如果历史轨迹不足N帧，跳过此次判断
-	if (history.size() < N) {
-		return;
-	}
-	// 计算平均位置和尺寸变化
-    float emaX0 =history[0].tlwh[0]+history[0].tlwh[2]/2;
-	float emaX = emaX0;  // 初始EMA值，可以设置为第一个数据点的值
-	double alpha = 0.3;  // 指数加权移动平均的权重
-    float emaZH0 = history[0].tlwh[1];
-    float emaZF0 = history[0].tlwh[1]+history[0].tlwh[3];
-    float emaZH = emaZH0;
-    float emaZF = emaZF0;
-	for (int i = 0; i < history.size(); ++i) {
-        emaX = calculateEMA(history[i].tlwh[0]+ history[i].tlwh[2]/2, emaX, alpha);
-        emaZH = calculateEMA(history[i].tlwh[1], emaZH, alpha);
-        emaZF = calculateEMA(history[i].tlwh[1]+history[i].tlwh[3], emaZF, alpha);
-	}
-	float timeMS = history[N-1].timeStamp-history[0].timeStamp;
-	float timeSF = (float)timeMS/1000;
-//    speedX = (emaX-emaX0)/timeSF;
-	speedX =( (history[N-1].tlwh[0]+ history[N-1].tlwh[2]/2)-(history[0].tlwh[0]+ history[0].tlwh[2]/2))/timeSF;
-//    float height1 = history[N-1].tlwh[1] - history[0].tlwh[1];//上边位移
-//    float height2 = (history[N-1].tlwh[1]+history[N-1].tlwh[3])-(history[0].tlwh[1]+history[0].tlwh[3]);//下边位移
-	float height1 = emaZH - emaZH0;//上边位移
-	float height2 = emaZF - emaZF0;//下边位移
-	speedZ = ((std::abs(height1)>std::abs(height2))?height1:-height2)/timeSF;
-//    speedZ = ((history[N-1].tlwh[1] - history[0].tlwh[1])/std::abs(history[0].tlwh[1]-240))/timeS;
-	LOGD("speedZ %f ",speedZ);
-	float threshholdX1=0.02343f*inputW;//判定为静止的阈值
-	float threshholdX2=0.03515f*inputW;//判定为运动的阈值
-//	float threshholdZ1=0.02083f*inputH;//判定为静止的阈值
-//	float threshholdZ2=0.04166f*inputH;//判定为运动的阈值
-//	float threshholdX1=15.0f;//判定为静止的阈值
-//	float threshholdX2=22.5f;//判定为运动的阈值
-	float threshholdZ1=10.0f;//判定为静止的阈值
-	float threshholdZ2=30.0f;//判定为运动的阈值
-	float  abs_speedX = std::abs(speedX);
-	if (abs_speedX < threshholdX1) {
-		directionX = StationaryX;
-	} else if (abs_speedX < threshholdX2) {
-	}else {
-		directionX = (speedX < 0) ? Left : Right;
-	}
-	// 判断z轴运动方向
-	float  abs_speedZ = std::abs(speedZ);
-	if(abs_speedZ<threshholdZ1){
-		directionZ = StationaryZ;
-	}else if(abs_speedZ<threshholdZ2){
-	}else{
-		directionZ = (speedZ < 0) ? Close : Away;
 	}
 }

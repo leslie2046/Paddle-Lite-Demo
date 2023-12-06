@@ -96,12 +96,8 @@ public class MainActivity extends Activity implements View.OnClickListener, Came
         ArrayList<TrackingObject> outputs = new ArrayList<TrackingObject> ();
 
         boolean modified = predictor.process(ARGB8888ImageBitmap, savedImagePath,outputs);
-        String areaJson = "[{\"x\":323,\"y\":2},{\"x\":616,\"y\":2},{\"x\":569,\"y\":432},{\"x\":536,\"y\":417},{\"x\":326,\"y\":469}]";
-        Type type = new TypeToken<ArrayList<PointF>>() {
-        }.getType();
-        ArrayList<PointF> area = new Gson().fromJson(areaJson, type);
-        predictor.setDynamicArea(area);
-        Log.d(TAG, outputs.toString());
+        if(!outputs.isEmpty())
+            Log.d(TAG, outputs.toString());
         if (!savedImagePath.isEmpty()) {
             synchronized (this) {
                 MainActivity.this.savedImagePath = "result.jpg";
@@ -183,6 +179,17 @@ public class MainActivity extends Activity implements View.OnClickListener, Came
                     SettingsActivity.inputMean,
                     SettingsActivity.inputStd,
                     SettingsActivity.scoreThreshold);
+            String areaJson = "[{\"x\":323,\"y\":2},{\"x\":616,\"y\":2},{\"x\":569,\"y\":432},{\"x\":536,\"y\":417},{\"x\":326,\"y\":469}]";
+            Type type = new TypeToken<ArrayList<PointF>>() {
+            }.getType();
+            ArrayList<PointF> area = new Gson().fromJson(areaJson, type);
+//            predictor.setDynamicArea(area);
+
+            String lineAJson = "[{\"x\":350,\"y\":425},{\"x\":547,\"y\":390}]";
+            String lineBJson = "[{\"x\":350,\"y\":444},{\"x\":563,\"y\":402}]";
+            ArrayList<PointF> lineA = new Gson().fromJson(lineAJson, type);
+            ArrayList<PointF> lineB = new Gson().fromJson(lineBJson, type);
+            predictor.setDynamicLine(lineA,lineB);
         }
     }
 

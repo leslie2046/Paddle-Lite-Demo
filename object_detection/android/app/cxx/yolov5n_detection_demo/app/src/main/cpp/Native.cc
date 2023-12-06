@@ -74,6 +74,43 @@ Java_com_addasound_object_1detection_Native_nativeSetDynamicArea(JNIEnv* env, jc
   }
   return pipeline->setDynamicArea(points);
 }
+
+JNIEXPORT jboolean JNICALL
+Java_com_addasound_object_1detection_Native_nativeSetDynamicLine(JNIEnv* env, jclass thiz, jlong ctx, jobject lineOut, jobject lineIn)
+{
+  Pipeline *pipeline = reinterpret_cast<Pipeline *>(ctx);
+  jclass arrayListClass = env->GetObjectClass(lineOut);
+  jmethodID sizeMethod = env->GetMethodID(arrayListClass, "size", "()I");
+  jmethodID getMethod = env->GetMethodID(arrayListClass, "get", "(I)Ljava/lang/Object;");
+  // 获取ArrayList的大小
+  jint sizeOut = env->CallIntMethod(lineOut, sizeMethod);
+  jint sizeIn = env->CallIntMethod(lineIn, sizeMethod);
+  // 创建vector<cv::Point2f>对象
+  std::vector<cv::Point2f> pointsOut;
+  std::vector<cv::Point2f> pointsIn;
+  // 遍历ArrayList并将数据添加到vector中
+  for (int i = 0; i < sizeOut; i++) {
+    jobject pointObj = env->CallObjectMethod(lineOut, getMethod, i);
+    jclass pointClass = env->GetObjectClass(pointObj);
+    jfieldID xField = env->GetFieldID(pointClass, "x", "F");
+    jfieldID yField = env->GetFieldID(pointClass, "y", "F");
+    jfloat x = env->GetFloatField(pointObj, xField);
+    jfloat y = env->GetFloatField(pointObj, yField);
+    pointsOut.push_back(cv::Point2f(x, y));
+    env->DeleteLocalRef(pointObj);
+  }
+  for (int i = 0; i < sizeIn; i++) {
+    jobject pointObj = env->CallObjectMethod(lineIn, getMethod, i);
+    jclass pointClass = env->GetObjectClass(pointObj);
+    jfieldID xField = env->GetFieldID(pointClass, "x", "F");
+    jfieldID yField = env->GetFieldID(pointClass, "y", "F");
+    jfloat x = env->GetFloatField(pointObj, xField);
+    jfloat y = env->GetFloatField(pointObj, yField);
+    pointsIn.push_back(cv::Point2f(x, y));
+    env->DeleteLocalRef(pointObj);
+  }
+  return pipeline->setDynamicLine(pointsOut,pointsIn);
+}
 /*
  * Class:     com_addasound_object_detection_Native
  * Method:    nativeRelease
@@ -111,13 +148,12 @@ Java_com_addasound_object_1detection_Native_nativeProcess(
   jfieldID trackIdField = env->GetFieldID(trackingObjectClass, "trackId", "I");
   jfieldID scoreField = env->GetFieldID(trackingObjectClass, "score", "F");
   jfieldID rectField = env->GetFieldID(trackingObjectClass, "rect", "Landroid/graphics/RectF;");
-  jfieldID directionXField = env->GetFieldID(trackingObjectClass, "directionX", "I");
-  jfieldID directionZField = env->GetFieldID(trackingObjectClass, "directionZ", "I");
   jfieldID inputWField = env->GetFieldID(trackingObjectClass, "inputW", "I");
   jfieldID inputHField = env->GetFieldID(trackingObjectClass, "inputH", "I");
   jfieldID areaStateField = env->GetFieldID(trackingObjectClass, "areaState", "I");
   jfieldID areaActionField = env->GetFieldID(trackingObjectClass, "areaAction", "I");
-
+    jfieldID lineStateField = env->GetFieldID(trackingObjectClass, "lineState", "I");
+    jfieldID lineActionField = env->GetFieldID(trackingObjectClass, "lineAction", "I");
     // Convert the android bitmap(ARGB8888) to the OpenCV RGBA image. Actually,
   // the data layout of AGRB8888 is R, G, B, A, it's the same as CV RGBA image,
   // so it is unnecessary to do the conversion of color format, check
@@ -160,12 +196,12 @@ Java_com_addasound_object_1detection_Native_nativeProcess(
       jobject trackingObject = env->AllocObject(trackingObjectClass);
       env->SetIntField(trackingObject, trackIdField, sTrack.track_id);
       env->SetFloatField(trackingObject, scoreField, sTrack.score);
-      env->SetIntField(trackingObject, directionXField, (int)sTrack.directionX);
-      env->SetIntField(trackingObject, directionZField, (int)sTrack.directionZ);
       env->SetIntField(trackingObject, inputWField, (int)sTrack.input_w);
       env->SetIntField(trackingObject, inputHField, (int)sTrack.input_h);
       env->SetIntField(trackingObject, areaStateField, (int)sTrack.areaState);
       env->SetIntField(trackingObject, areaActionField, (int)sTrack.areaAction);
+        env->SetIntField(trackingObject, lineStateField, (int)sTrack.lineState);
+        env->SetIntField(trackingObject, lineActionField, (int)sTrack.lineAction);
       // 创建并设置RectF对象（假设已经存在rectClass和对应的field IDs）
       jclass rectFClass = env->FindClass("android/graphics/RectF");
       jobject rectF = env->AllocObject(rectFClass);

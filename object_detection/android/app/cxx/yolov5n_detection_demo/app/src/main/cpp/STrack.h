@@ -30,8 +30,9 @@ public:
 	void activate(byte_kalman::KalmanFilter &kalman_filter, int frame_id);
 	void re_activate(STrack &new_track, int frame_id, bool new_id = false);
 	void update(STrack &new_track, int frame_id);
-	void updateHistoryAndDirection(int inputW,int inputH);
+	void updateHistory(int inputW,int inputH);
 	void updateAreaStateAndAction(const std::vector<cv::Point2f> area);
+	void updateLineStateAndAction(const std::vector<cv::Point2f> lineOut,const std::vector<cv::Point2f> lineIn);
 
 public:
 	bool is_activated;
@@ -48,13 +49,11 @@ public:
 	KAL_MEAN mean;
 	KAL_COVA covariance;
 	float score;
-	DirectionX directionX = StationaryX;  // 存储x轴运动方向
-	DirectionZ directionZ = StationaryZ;  // 存储z轴运动方向
 	std::deque<TrackFrame> history;  // 存储历史轨迹
-	float speedX = 0.0f;
-	float speedZ = 0.0f;
     int areaState = 0;//0:功能未启用  1:in   2:out
 	int areaAction = 0;//0:功能未启用 1:not change 2:in to out 3:out to in
+	int lineState = 0;//0:功能未启用 1:no change 2:跨越了out  3:跨越了in
+	int lineAction = 0; //0:功能未启用 1:not change 2:in to out 3:out to in
 	int input_w;
 	int input_h;
 private:

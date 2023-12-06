@@ -92,7 +92,7 @@ public: // NOLINT
   bool Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vector<STrack>* output_stracks); // NOLINT
   void setTrackingClassId(int classId);
   bool setDynamicArea(std::vector<cv::Point2f> area);
-
+  bool setDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn);
 
 private: // NOLINT
   // Visualize the results to origin image
@@ -104,6 +104,7 @@ private: // NOLINT
   void VisualizeTrackerResults( const std::vector<STrack> stracks,
                                            cv::Mat *rgbaImage);
   void drawPolygon(const std::vector<cv::Point2f>& area, cv::Mat *rgbaImage);
+  void drawLine(const std::vector<cv::Point2f>& area,cv::Scalar color, cv::Mat *rgbaImage);
 
 private: // NOLINT
   std::shared_ptr<Detector> detector_;

@@ -16,11 +16,13 @@ public:
 	vector<STrack> update(const vector<Object>& objects,int inputW,int inputH);
 	Scalar get_color(int idx);
 	bool setDynamicArea(std::vector<cv::Point2f> area);
+	bool setDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn);
 	double pointPolygonTest(cv::Point2f point);
 
 public:
 	std::vector<cv::Point2f> area_;
-
+	std::vector<cv::Point2f> lineOut_;
+	std::vector<cv::Point2f> lineIn_;
 private:
 	vector<STrack*> joint_stracks(vector<STrack*> &tlista, vector<STrack> &tlistb);
 	vector<STrack> joint_stracks(vector<STrack> &tlista, vector<STrack> &tlistb);
