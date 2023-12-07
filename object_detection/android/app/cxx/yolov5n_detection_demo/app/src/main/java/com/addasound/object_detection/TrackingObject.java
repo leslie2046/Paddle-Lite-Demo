@@ -10,11 +10,10 @@ public class TrackingObject {
     public RectF rect = new RectF();
     public int inputW = 0;
     public int inputH = 0;
-    public int areaState = 0;//0:功能未启用  1:in   2:out
-    public int areaAction = 0;//0:功能未启用 1:not change 2:in to out 3:out to in
-
-    public int lineState = 0;//0:功能未启用 1:no change 2:跨越了out  3:跨越了in
-    public int lineAction = 0; //0:功能未启用 1:not change 2:in to out 3:out to in
+    int areaState = -1;//-1:功能未启用 0:reset 1:in   2:out
+    int areaAction = -1;//-1:功能未启用 0:not change 1:in to out 2:out to in
+    int lineState = -1;//-1:功能未启用 0:reset 1:跨越了out  2:跨越了in
+    int lineAction = -1; //-1:功能未启用 0:not change 1:in to out 2:out to in
 
     @Override
     public String toString() {

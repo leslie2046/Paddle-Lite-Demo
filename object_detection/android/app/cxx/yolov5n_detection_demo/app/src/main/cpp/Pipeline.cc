@@ -282,21 +282,21 @@ void Pipeline::VisualizeTrackerResults( const std::vector<STrack> stracks,cv::Ma
     if(tracker.area_.size()>2){
       cv::putText(*rgbaImage, format("%s",stracks[i].areaState==1?"in":"out"),cv::Point2d(tlwh[0]+tlwh[2]/2, tlwh[1]+tlwh[3]/2+100),
                   fontFace, fontScale,s, fontThickness);
-      if(stracks[i].areaAction==2){
+      if(stracks[i].areaAction==1){
         out_count++;
       }
-      if(stracks[i].areaAction==3){
+      if(stracks[i].areaAction==2){
         in_count++;
       }
     }
     if(tracker.lineOut_.size()>1&&tracker.lineIn_.size()>1){
       if(stracks[i].history.size()>1)
-          if(stracks[i].lineAction==2){
+          if(stracks[i].lineAction==1){
             cv::putText(*rgbaImage, format("%s","out"),cv::Point2d(tlwh[0]+tlwh[2]/2, tlwh[1]+tlwh[3]/2+100),
                         fontFace, fontScale,s, fontThickness);
             out_count++;
           }
-        if(stracks[i].lineAction==3){
+        if(stracks[i].lineAction==2){
           cv::putText(*rgbaImage, format("%s","in"),cv::Point2d(tlwh[0]+tlwh[2]/2, tlwh[1]+tlwh[3]/2+100),
                     fontFace, fontScale,s, fontThickness);
           in_count++;
