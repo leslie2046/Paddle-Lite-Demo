@@ -275,6 +275,12 @@ void Pipeline::VisualizeTrackerResults( const std::vector<STrack> stracks,cv::Ma
     cv::putText(*rgbaImage, format("%d,%d",(int)(tlwh[0]+tlwh[2]),(int)(tlwh[1]+tlwh[3])),cv::Point2d(tlwh[0]+tlwh[2]-100, tlwh[1]+tlwh[3]-20),
                 fontFace, 1,s, 1);
       rectangle(*rgbaImage, Rect(tlwh[0], tlwh[1], tlwh[2], tlwh[3]), s, 2);
+    std::vector<cv::Point> polygon;
+    for (TrackFrame frame : sTrack.history) {
+      polygon.push_back(cv::Point(static_cast<int>(frame.tlwh[0]+frame.tlwh[2]/2), static_cast<int>(frame.tlwh[1]+frame.tlwh[3])));
+    }
+    cv::polylines(*rgbaImage, polygon, false, cv::Scalar(0, 255, 0), 2);
+
     cv::Point2f point2F;
     point2F.x = tlwh[0] + tlwh[2] / 2;
     point2F.y = tlwh[1] + tlwh[3];
