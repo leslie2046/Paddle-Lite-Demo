@@ -1,6 +1,6 @@
 #include "STrack.h"
 #include "Utils.h"
-const int N = 7;  // 考虑最近N帧
+const int MAX_NUM_FRAME = 1000;  // 考虑最近N帧
 
 STrack::STrack(vector<float> tlwh_, float score)
 {
@@ -391,14 +391,8 @@ void STrack::updateHistory(int inputW,int inputH) {
 	gettimeofday(&tv, NULL);
 	long long milliseconds = (long long)tv.tv_sec * 1000 + tv.tv_usec / 1000;
     TrackFrame trackFrame = TrackFrame(tlwh,milliseconds);
-	if(history.size()==1){
-		history.push_back(trackFrame);
-		history.push_back(trackFrame);
-		history.pop_front();//丢弃第一个
-	}else{
-		history.push_back(trackFrame);
-	}
-	if (history.size() > N) {
+	history.push_back(trackFrame);
+	if (history.size() > MAX_NUM_FRAME) {
 		history.pop_front();
 	}
 }
