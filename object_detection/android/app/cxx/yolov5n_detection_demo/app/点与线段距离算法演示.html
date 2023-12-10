@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canvas Multiple Line Drawing Demo</title>
+<style>
+  canvas {
+    border: 1px solid black;
+  }
+</style>
+</head>
+<body>
+<button id="start">开始</button>
+<button id="finish">完成</button>
+<canvas id="canvas" width="600" height="400"></canvas>
+
+<script>
+// 获取HTML元素
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const startBtn = document.getElementById('start');
+const finishBtn = document.getElementById('finish');
+
+let points = [];
+let finished = false;
+
+// 开始按钮事件
+startBtn.addEventListener('click', function() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除画布
+  points = []; // 重置点
+  finished = false;
+});
+
+// 完成按钮事件
+finishBtn.addEventListener('click', function() {
+  finished = true;
+  // 绘制所有线段到点的最近路径
+
+});
+
+// 画布点击事件
+canvas.addEventListener('click', function(event) {
+  if (!finished) {
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    drawPoint(x, y, 'green');
+    drawText(`(${x.toFixed(2)}, ${y.toFixed(2)})`, x, y, 'green');
+    points.push({x: x, y: y});
+
+    if (points.length >= 2 && points.length % 2 === 0) {
+      drawLine(points[points.length - 2], points[points.length - 1], 'blue');
+    }
+  }else{
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    drawPoint(x, y, 'red');
+    drawText(`(${x.toFixed(2)}, ${y.toFixed(2)})`, x, y, 'red');
+	  for (let i = 0; i < points.length; i += 2) {
+        drawClosestPath(x,y, points[i], points[i + 1]);
+    }
+  }
+
+});
+
+
+// 绘制点
+function drawPoint(x, y, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(x, y, 3, 0, Math.PI * 2, true);
+  ctx.fill();
+}
+
+// 绘制文本
+function drawText(text, x, y, color) {
+  ctx.fillStyle = color;
+  ctx.font = '14px Arial';
+  ctx.fillText(text, x + 5, y - 5);
+}
+
+// 绘制线段
+function drawLine(point1, point2, color) {
+  ctx.strokeStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(point1.x, point1.y);
+  ctx.lineTo(point2.x, point2.y);
+  ctx.stroke();
+}
+
+// 绘制最近路径
+function drawClosestPath(x,y, lineStart, lineEnd) {
+  const distance = distanceToLine(x, y, lineStart.x, lineStart.y, lineEnd.x, lineEnd.y);
+  const closestPoint = getClosestPointOnLine(x, y, lineStart.x, lineStart.y, lineEnd.x, lineEnd.y);
+
+  // 绘制黑色虚线
+  ctx.setLineDash([5, 5]);
+  ctx.strokeStyle = 'black';
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(closestPoint.px, closestPoint.py);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 显示距离
+  drawText(`${distance.toFixed(2)}`, (x + closestPoint.px) / 2, (y + closestPoint.py) / 2, 'black');
+}
+
+
+// 计算点到线段的最短距离
+function distanceToLine(x, y, x1, y1, x2, y2) {
+  const cross = (x2 - x1) * (x - x1) + (y2 - y1) * (y - y1);
+  if (cross <= 0) {
+    return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1));
+  }
+  const d2 = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+  if (cross >= d2) {
+    return Math.sqrt((x - x2) * (x - x2) + (y - y2) * (y - y2));
+  }
+  const r = cross / d2;
+  const px = x1 + (x2 - x1) * r;
+  const py = y1 + (y2 - y1) * r;
+
+  return Math.sqrt((x - px) * (x - px) + (y - py) * (y - py));
+  //return Math.sqrt((x - px) * (x - px) + (py - y1) * (py - y1));  //错误的算法
+}
+
+// 获取线段上最近的点
+function getClosestPointOnLine(px, py, x1, y1, x2, y2) {
+  const A = px - x1;
+  const B = py - y1;
+  const C = x2 - x1;
+  const D = y2 - y1;
+
+  const dot = A * C + B * D;
+  const len_sq = C * C + D * D;
+  let param = -1;
+  if (len_sq != 0) //in case of 0 length line
+      param = dot / len_sq;
+
+  let xx, yy;
+
+  if (param < 0) {
+    xx = x1;
+    yy = y1;
+  }
+  else if (param > 1) {
+    xx = x2;
+    yy = y2;
+  }
+  else {
+    xx = x1 + param * C;
+    yy = y1 + param * D;
+  }
+
+  return { px: xx, py: yy };
+}
+
+</script>
+</body>
+</html>
