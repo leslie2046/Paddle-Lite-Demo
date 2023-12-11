@@ -1,6 +1,6 @@
 #include "STrack.h"
 #include "Utils.h"
-const int MAX_NUM_FRAME = 1000;  // 考虑最近N帧
+const int MAX_NUM_FRAME = 50;  // 考虑最近N帧
 
 STrack::STrack(vector<float> tlwh_, float score)
 {
@@ -249,8 +249,7 @@ double distance_to_line(double x, double y, double x1, double y1, double x2, dou
 	double r = cross / d2;
 	double px = x1 + (x2 - x1) * r;
 	double py = y1 + (y2 - y1) * r;
-
-	return std::sqrt((x - px) * (x - px) + (py - y1) * (py - y1));
+	return std::sqrt((x - px) * (x - px) + (y - py) * (y - py));
 }
 
 double vector_angle(const cv::Point2f& midpoint, const cv::Point2f& previous_midpoint) {
@@ -378,7 +377,6 @@ void STrack:: updateAreaStateAndAction(const std::vector<cv::Point2f> area) {
 			//TODO
 		}
 		areaState = areaState_;
-		LOGD("updateAreaStateAndAction  (%d,%d)", areaState, areaAction);
 	}
 }
 

@@ -235,17 +235,12 @@ void Detector::Predict(const cv::Mat &rgbaImage, std::vector<Object> *results,
   auto t = GetCurrentTime();
   Preprocess(rgbaImage);
   *preprocessTime = GetElapsedTime(t);
-//  LOGD("Detector preprocess costs %f ms", *preprocessTime);
-
   t = GetCurrentTime();
   predictor_->Run();
   *predictTime = GetElapsedTime(t);
-//  LOGD("Detector predict costs %f ms", *predictTime);
-
   t = GetCurrentTime();
   Postprocess(results);
   *postprocessTime = GetElapsedTime(t);
-//  LOGD("Detector postprocess costs %f ms", *postprocessTime);
 }
 
 Pipeline::Pipeline(const std::string &modelDir, const std::string &labelPath,
@@ -257,7 +252,6 @@ Pipeline::Pipeline(const std::string &modelDir, const std::string &labelPath,
                                inputWidth, inputHeight, inputMean, inputStd,
                                scoreThreshold));
 }
-
 
 void Pipeline::VisualizeTrackerResults( const std::vector<STrack> stracks,cv::Mat *rgbaImage) {
     int fontFace = cv::FONT_HERSHEY_PLAIN;
@@ -277,14 +271,17 @@ void Pipeline::VisualizeTrackerResults( const std::vector<STrack> stracks,cv::Ma
       rectangle(*rgbaImage, Rect(tlwh[0], tlwh[1], tlwh[2], tlwh[3]), s, 2);
     std::vector<cv::Point> polygon;
     for (TrackFrame frame : sTrack.history) {
+      cv::Point2f point;
+      point.x = frame.tlwh[0]+frame.tlwh[2]/2;
+      point.y = frame.tlwh[1]+frame.tlwh[3];
+      cv::circle(*rgbaImage,point,1, cv::Scalar(0, 255, 0),-1);
       polygon.push_back(cv::Point(static_cast<int>(frame.tlwh[0]+frame.tlwh[2]/2), static_cast<int>(frame.tlwh[1]+frame.tlwh[3])));
     }
-    cv::polylines(*rgbaImage, polygon, false, 1, 2);
-
+    cv::polylines(*rgbaImage, polygon, false, s, 1);
     cv::Point2f point2F;
     point2F.x = tlwh[0] + tlwh[2] / 2;
     point2F.y = tlwh[1] + tlwh[3];
-    cv::circle(*rgbaImage,point2F,3, cv::Scalar(0, 255, 0),-1);
+    cv::circle(*rgbaImage,point2F,2, cv::Scalar(0, 255, 0),-1);
     if(tracker.area_.size()>2){
       cv::putText(*rgbaImage, format("%s",stracks[i].areaState==1?"in":"out"),cv::Point2d(tlwh[0]+tlwh[2]/2, tlwh[1]+tlwh[3]/2+100),
                   fontFace, fontScale,s, fontThickness);
@@ -310,7 +307,6 @@ void Pipeline::VisualizeTrackerResults( const std::vector<STrack> stracks,cv::Ma
     }
   }
 }
-
 
 void Pipeline::VisualizeResults(const std::vector<Object> &results,
                                 cv::Mat *rgbaImage) {
@@ -414,17 +410,15 @@ bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vecto
                      &postprocessTime);
   auto t = GetCurrentTime();
   vector<STrack> output_stracks = tracker.update(results,rgbaImage.cols,rgbaImage.rows);
-  trackProcessTime = GetElapsedTime(t);
-  // Visualize the objects to the origin image
-  VisualizeResults(results, &rgbaImage);
-  VisualizeTrackerResults(output_stracks,&rgbaImage);
-//   Visualize the status(performance data) to the origin image
-  VisualizeStatus(preprocessTime, predictTime, postprocessTime,trackProcessTime, &rgbaImage);
-  drawPolygon(tracker.area_,&rgbaImage);
-  drawLine(tracker.lineOut_,cv::Scalar(0, 0, 255),&rgbaImage);
-  drawLine(tracker.lineIn_,cv::Scalar(255,255, 0),&rgbaImage);
   // Dump modified image if savedImagePath is set
   if (!savedImagePath.empty()) {
+    VisualizeResults(results, &rgbaImage);
+    VisualizeTrackerResults(output_stracks,&rgbaImage);
+    drawPolygon(tracker.area_,&rgbaImage);
+    drawLine(tracker.lineOut_,cv::Scalar(0, 0, 255),&rgbaImage);
+    drawLine(tracker.lineIn_,cv::Scalar(255,255, 0),&rgbaImage);
+    trackProcessTime = GetElapsedTime(t);
+    VisualizeStatus(preprocessTime, predictTime, postprocessTime,trackProcessTime, &rgbaImage);
     cv::Mat bgrImage;
     cv::cvtColor(rgbaImage, bgrImage, cv::COLOR_RGBA2BGR);
     imwrite(savedImagePath, bgrImage);
