@@ -12,7 +12,7 @@ cmake_minimum_required(VERSION 3.4.1)
 
 INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../../../eigen-3.3.9")
 
-set(PaddleLite_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../PaddleLite-gpu")
+set(PaddleLite_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../PaddleLite-cpu")
 include_directories(${PaddleLite_DIR}/cxx/include)
 
 set(OpenCV_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../OpenCV/sdk/native/jni")
