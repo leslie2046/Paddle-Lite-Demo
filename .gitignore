@@ -10,3 +10,4 @@ PaddleLite/
 .cxx/
 cache/
 models
+local.properties
