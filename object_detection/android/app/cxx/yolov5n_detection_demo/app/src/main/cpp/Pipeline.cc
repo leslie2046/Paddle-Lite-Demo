@@ -282,29 +282,6 @@ void Pipeline::VisualizeTrackerResults( const std::vector<STrack> stracks,cv::Ma
     point2F.x = tlwh[0] + tlwh[2] / 2;
     point2F.y = tlwh[1] + tlwh[3];
     cv::circle(*rgbaImage,point2F,2, cv::Scalar(0, 255, 0),-1);
-    if(tracker.area_.size()>2){
-      cv::putText(*rgbaImage, format("%s",stracks[i].areaState==1?"in":"out"),cv::Point2d(tlwh[0]+tlwh[2]/2, tlwh[1]+tlwh[3]/2+100),
-                  fontFace, fontScale,s, fontThickness);
-      if(stracks[i].areaAction==1){
-        out_count++;
-      }
-      if(stracks[i].areaAction==2){
-        in_count++;
-      }
-    }
-    if(tracker.lineOut_.size()>1&&tracker.lineIn_.size()>1){
-      if(stracks[i].history.size()>1)
-          if(stracks[i].lineAction==1){
-            cv::putText(*rgbaImage, format("%s","out"),cv::Point2d(tlwh[0]+tlwh[2]/2, tlwh[1]+tlwh[3]/2+100),
-                        fontFace, fontScale,s, fontThickness);
-            out_count++;
-          }
-        if(stracks[i].lineAction==2){
-          cv::putText(*rgbaImage, format("%s","in"),cv::Point2d(tlwh[0]+tlwh[2]/2, tlwh[1]+tlwh[3]/2+100),
-                    fontFace, fontScale,s, fontThickness);
-          in_count++;
-      }
-    }
   }
 }
 
@@ -410,6 +387,15 @@ bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vecto
                      &postprocessTime);
   auto t = GetCurrentTime();
   vector<STrack> output_stracks = tracker.update(results,rgbaImage.cols,rgbaImage.rows);
+  for (int i = 0; i < output_stracks.size(); i++) {
+      STrack sTrack = output_stracks[i];
+      if (sTrack.areaAction == 1 || sTrack.lineAction == 1) {
+        out_count++;
+      }
+      if (sTrack.areaAction == 2 || sTrack.lineAction == 2) {
+        in_count++;
+      }
+  }
   // Dump modified image if savedImagePath is set
   if (!savedImagePath.empty()) {
     VisualizeResults(results, &rgbaImage);
