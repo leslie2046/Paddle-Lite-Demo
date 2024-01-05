@@ -363,7 +363,7 @@ void Pipeline::drawLine(const std::vector<cv::Point2f>& line,cv::Scalar color, c
   for (const auto& point : line) {
     polygon.push_back(cv::Point(static_cast<int>(point.x), static_cast<int>(point.y)));
   }
-  cv::polylines(*rgbaImage, polygon, false,color, 3);
+  cv::polylines(*rgbaImage, polygon, false,color, 1);
 }
 
 void Pipeline::setTrackingClassId(int classId){

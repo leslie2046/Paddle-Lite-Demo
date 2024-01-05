@@ -283,6 +283,18 @@ bool doIntersect(cv::Point2f p1, cv::Point2f q1, cv::Point2f p2, cv::Point2f q2)
 
 	return false;
 }
+
+double minDistance(cv::Point2f point,const std::vector<cv::Point2f> line){
+	double d = 999999.0f;
+	for(int i=0;i<line.size()-1;i++){
+		double tmp = distance_to_line(point.x,point.y,line[i].x,line[i].y,line[i+1].x,line[i+1].y);
+		if(tmp<d){
+			d = tmp;
+		}
+	}
+	return d;
+}
+
 void STrack::updateLineStateAndAction(const std::vector<cv::Point2f> lineOut,const std::vector<cv::Point2f> lineIn){
 	if(lineOut.size()<2||lineIn.size()<2){
 		lineState = -1;
@@ -299,16 +311,27 @@ void STrack::updateLineStateAndAction(const std::vector<cv::Point2f> lineOut,con
 	cv::Point2f prePoint2F;
 	prePoint2F.x = history[history.size()-2].tlwh[0] + history[history.size()-2].tlwh[2] / 2;
 	prePoint2F.y = history[history.size()-2].tlwh[1] + history[history.size()-2].tlwh[3];
-	bool isIntersectOut = doIntersect(lineOut[0],lineOut[1],prePoint2F,point2F);
-	bool isIntersectIn = doIntersect(lineIn[0],lineIn[1],prePoint2F,point2F);
+	bool isIntersectOut = false;
+	for(int i=0;i<lineOut.size()-1;i++){
+		isIntersectOut = doIntersect(lineOut[i],lineOut[i+1],prePoint2F,point2F);
+		 if(isIntersectOut)
+			 break;
+	}
+	bool isIntersectIn = false;
+	for(int i=0;i<lineIn.size()-1;i++){
+		isIntersectIn = doIntersect(lineIn[i],lineIn[i+1],prePoint2F,point2F);
+		if(isIntersectIn)
+			break;
+	}
+
 	if(!isIntersectOut&&!isIntersectIn){
 		lineAction = 0;
 		return;
 	}
 
 	if(isIntersectOut&&isIntersectIn){
-		double distanceOut = distance_to_line(prePoint2F.x,prePoint2F.y,lineOut[0].x,lineOut[0].y,lineOut[1].x,lineOut[1].y);
-		double distanceIn = distance_to_line(prePoint2F.x,prePoint2F.y,lineIn[0].x,lineIn[0].y,lineIn[1].x,lineIn[1].y);
+		double distanceOut = minDistance(prePoint2F,lineOut);
+		double distanceIn = minDistance(prePoint2F,lineIn);
 		//一次跨越两条线
 		if(distanceOut < distanceIn){
 			lineAction = 2;

@@ -185,8 +185,8 @@ public class MainActivity extends Activity implements View.OnClickListener, Came
             ArrayList<PointF> area = new Gson().fromJson(areaJson, type);
 //            predictor.setDynamicArea(area);
 
-            String lineAJson = "[{\"x\":350,\"y\":425},{\"x\":547,\"y\":390}]";
-            String lineBJson = "[{\"x\":350,\"y\":444},{\"x\":563,\"y\":402}]";
+            String lineAJson = "[{\"x\":138,\"y\":414},{\"x\":193,\"y\":360},{\"x\":291,\"y\":351},{\"x\":391,\"y\":389}]";
+            String lineBJson = "[{\"x\":143,\"y\":429},{\"x\":208,\"y\":372},{\"x\":292,\"y\":368},{\"x\":414,\"y\":418}]";
             ArrayList<PointF> lineA = new Gson().fromJson(lineAJson, type);
             ArrayList<PointF> lineB = new Gson().fromJson(lineBJson, type);
             predictor.setDynamicLine(lineA,lineB);
