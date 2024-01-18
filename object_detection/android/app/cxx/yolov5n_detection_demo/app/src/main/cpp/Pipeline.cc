@@ -355,7 +355,7 @@ void Pipeline::drawPolygon(const std::vector<cv::Point2f>& area, cv::Mat *rgbaIm
   for (const auto& point : area) {
     polygon.push_back(cv::Point(static_cast<int>(point.x), static_cast<int>(point.y)));
   }
-  cv::polylines(*rgbaImage, polygon, true, cv::Scalar(255, 0, 0), 3); // 红色线条，线宽为3
+  cv::polylines(*rgbaImage, polygon, true, cv::Scalar(152, 251, 152), 3); // 红色线条，线宽为3
 }
 
 void Pipeline::drawLine(const std::vector<cv::Point2f>& line,cv::Scalar color, cv::Mat *rgbaImage) {
@@ -363,7 +363,7 @@ void Pipeline::drawLine(const std::vector<cv::Point2f>& line,cv::Scalar color, c
   for (const auto& point : line) {
     polygon.push_back(cv::Point(static_cast<int>(point.x), static_cast<int>(point.y)));
   }
-  cv::polylines(*rgbaImage, polygon, false,color, 1);
+  cv::polylines(*rgbaImage, polygon, false,color, 3);
 }
 
 void Pipeline::setTrackingClassId(int classId){
@@ -401,8 +401,8 @@ bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vecto
     VisualizeResults(results, &rgbaImage);
     VisualizeTrackerResults(output_stracks,&rgbaImage);
     drawPolygon(tracker.area_,&rgbaImage);
-    drawLine(tracker.lineOut_,cv::Scalar(0, 0, 255),&rgbaImage);
-    drawLine(tracker.lineIn_,cv::Scalar(255,255, 0),&rgbaImage);
+    drawLine(tracker.lineOut_,cv::Scalar(0, 56, 168),&rgbaImage);
+    drawLine(tracker.lineIn_,cv::Scalar(255,223, 0),&rgbaImage);
     trackProcessTime = GetElapsedTime(t);
     VisualizeStatus(preprocessTime, predictTime, postprocessTime,trackProcessTime, &rgbaImage);
     cv::Mat bgrImage;
