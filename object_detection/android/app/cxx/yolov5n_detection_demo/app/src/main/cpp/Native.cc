@@ -181,7 +181,7 @@ Java_com_addasound_object_1detection_Native_nativeProcess(
     LOGE("Invoke AndroidBitmap_unlockPixels() failed!");
     return JNI_FALSE;
   }
-  LOGD("Read from bitmap costs %f ms", GetElapsedTime(t));
+//  LOGD("Read from bitmap costs %f ms", GetElapsedTime(t));
 
   std::string savedImagePath = jstring_to_cpp_string(env, jsavedImagePath);
   Pipeline *pipeline = reinterpret_cast<Pipeline *>(ctx);
@@ -243,7 +243,7 @@ Java_com_addasound_object_1detection_Native_nativeProcess(
       LOGE("Invoke AndroidBitmap_unlockPixels() failed!");
       return JNI_FALSE;
     }
-    LOGD("Write to bitmap costs %f ms", GetElapsedTime(t));
+//    LOGD("Write to bitmap costs %f ms", GetElapsedTime(t));
   }
 
   return modified;
