@@ -38,7 +38,7 @@ public class Native {
                 scoreThreshold);
         nativeSetTrackingClassId(ctx,0);
 
-        return ctx == 0;
+        return ctx != 0;
     }
 
     public   boolean setDynamicArea(ArrayList<PointF> area){
@@ -47,6 +47,12 @@ public class Native {
 
     public   boolean setDynamicLine(ArrayList<PointF> lineOut,ArrayList<PointF> lineIn){
         return nativeSetDynamicLine(ctx,lineOut,lineIn);
+    }
+    public   boolean setWelcomeDynamicLine(ArrayList<PointF> lineOut,ArrayList<PointF> lineIn){
+        return nativeSetWelcomeDynamicLine(ctx,lineOut,lineIn);
+    }
+    public   boolean setByeDynamicLine(ArrayList<PointF> lineOut,ArrayList<PointF> lineIn){
+        return nativeSetByeDynamicLine(ctx,lineOut,lineIn);
     }
     public boolean release() {
         if (ctx == 0) {
@@ -82,4 +88,6 @@ public class Native {
     public static native boolean nativeSetDynamicArea(long ctx,ArrayList<PointF> area);
 
     public static native boolean nativeSetDynamicLine(long ctx,ArrayList<PointF> lineOut,ArrayList<PointF> lineIn);
+    public static native boolean nativeSetWelcomeDynamicLine(long ctx,ArrayList<PointF> lineOut,ArrayList<PointF> lineIn);
+    public static native boolean nativeSetByeDynamicLine(long ctx,ArrayList<PointF> lineOut,ArrayList<PointF> lineIn);
 }

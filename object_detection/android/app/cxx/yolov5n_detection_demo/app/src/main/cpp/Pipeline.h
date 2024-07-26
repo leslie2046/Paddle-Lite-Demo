@@ -93,6 +93,8 @@ public: // NOLINT
   void setTrackingClassId(int classId);
   bool setDynamicArea(std::vector<cv::Point2f> area);
   bool setDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn);
+  bool setWelcomeDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn);
+  bool setByeDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn);
 
 private: // NOLINT
   // Visualize the results to origin image
@@ -110,5 +112,8 @@ private: // NOLINT
   std::shared_ptr<Detector> detector_;
   int in_count=0;
   int out_count=0;
-
+  int welcome_in_count=0;
+  int welcome_out_count=0;
+  int bye_in_count=0;
+  int bye_out_count=0;
 };

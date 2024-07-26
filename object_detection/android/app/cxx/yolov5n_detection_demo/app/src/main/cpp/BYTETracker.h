@@ -17,12 +17,18 @@ public:
 	Scalar get_color(int idx);
 	bool setDynamicArea(std::vector<cv::Point2f> area);
 	bool setDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn);
+	bool setWelcomeDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn);
+	bool setByeDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn);
 	double pointPolygonTest(cv::Point2f point);
 
 public:
 	std::vector<cv::Point2f> area_;
 	std::vector<cv::Point2f> lineOut_;
 	std::vector<cv::Point2f> lineIn_;
+	std::vector<cv::Point2f> welcomeLineOut_;
+	std::vector<cv::Point2f> welcomeLineIn_;
+	std::vector<cv::Point2f> byeLineOut_;
+	std::vector<cv::Point2f> byeLineIn_;
 private:
 	vector<STrack*> joint_stracks(vector<STrack*> &tlista, vector<STrack> &tlistb);
 	vector<STrack> joint_stracks(vector<STrack> &tlista, vector<STrack> &tlistb);

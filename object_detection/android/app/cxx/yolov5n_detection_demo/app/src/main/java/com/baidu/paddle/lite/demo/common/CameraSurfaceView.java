@@ -24,7 +24,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.List;
-
+import java.io.File;
+import java.util.regex.Pattern;
 public class CameraSurfaceView extends GLSurfaceView implements Renderer,
         SurfaceTexture.OnFrameAvailableListener {
     private static final String TAG = CameraSurfaceView.class.getSimpleName();
@@ -123,7 +124,30 @@ public class CameraSurfaceView extends GLSurfaceView implements Renderer,
             }
         }
     }
+    private static final String LOG_TAG = "native-lib";
+    private static final Pattern VIDEO_DEVICE_PATTERN = Pattern.compile("video[0-9]+");
+
+    public static void listVideoDevices() {
+        Log.i(LOG_TAG, "listVideoDevices");
+        File devDirectory = new File("/dev");
+        if (devDirectory.exists() && devDirectory.isDirectory()) {
+            File[] files = devDirectory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+//                    Log.i(LOG_TAG, "Found video device: " + file.getName());
+                    if (VIDEO_DEVICE_PATTERN.matcher(file.getName()).find()) {
+                        Log.i(LOG_TAG, "Found video device: " + file.getName());
+                    }
+                }
+            } else {
+                Log.i(LOG_TAG, "No files in /dev directory");
+            }
+        } else {
+            Log.i(LOG_TAG, "Cannot open /dev directory");
+        }
+    }
     public static void printParameters(Camera camera) {
+        listVideoDevices();
         Camera.Parameters parameters = camera.getParameters();
         List<Integer> supportedFormats = parameters.getSupportedPreviewFormats();
         System.out.println("Supported Preview Formats:");

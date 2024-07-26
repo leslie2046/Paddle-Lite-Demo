@@ -340,14 +340,25 @@ void Pipeline::VisualizeStatus(double preprocessTime, double predictTime,
   offset.y += textSize.height;
   cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
               fontThickness);
-  sprintf(text, "in: %d",in_count);
-  offset.y += textSize.height;
-  cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
-              fontThickness);
-  sprintf(text, "out: %d",out_count);
-  offset.y += textSize.height;
-  cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
-              fontThickness);
+  if((!tracker.lineIn_.empty()&&!tracker.lineOut_.empty())
+    ||!tracker.area_.empty()){
+    sprintf(text, "in: %d out: %d",in_count,out_count);
+    offset.y += textSize.height;
+    cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
+                fontThickness);
+  }
+  if(!tracker.welcomeLineIn_.empty()&&!tracker.welcomeLineOut_.empty()){
+    sprintf(text, "welcome in: %d out: %d",welcome_in_count,welcome_out_count);
+    offset.y += textSize.height;
+    cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
+                fontThickness);
+  }
+  if(!tracker.byeLineIn_.empty()&&!tracker.byeLineOut_.empty()){
+    sprintf(text, "bye in: %d out:%d",bye_in_count,bye_out_count);
+    offset.y += textSize.height;
+    cv::putText(*rgbaImage, text, offset, fontFace, fontScale, fontColor,
+                fontThickness);
+  }
 }
 
 void Pipeline::drawPolygon(const std::vector<cv::Point2f>& area, cv::Mat *rgbaImage) {
@@ -363,7 +374,7 @@ void Pipeline::drawLine(const std::vector<cv::Point2f>& line,cv::Scalar color, c
   for (const auto& point : line) {
     polygon.push_back(cv::Point(static_cast<int>(point.x), static_cast<int>(point.y)));
   }
-  cv::polylines(*rgbaImage, polygon, false,color, 3);
+  cv::polylines(*rgbaImage, polygon, false,color, 2);
 }
 
 void Pipeline::setTrackingClassId(int classId){
@@ -376,6 +387,12 @@ bool Pipeline::setDynamicArea(std::vector<cv::Point2f> area) {
 
 bool Pipeline::setDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn) {
   return tracker.setDynamicLine(lineOut,lineIn);
+}
+bool Pipeline::setWelcomeDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn) {
+  return tracker.setWelcomeDynamicLine(lineOut,lineIn);
+}
+bool Pipeline::setByeDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn) {
+  return tracker.setByeDynamicLine(lineOut,lineIn);
 }
 
 bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vector<STrack>* outputs) {
@@ -395,6 +412,18 @@ bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vecto
       if (sTrack.areaAction == 2 || sTrack.lineAction == 2) {
         in_count++;
       }
+      if (sTrack.welcomeLineAction == 1) {
+        welcome_out_count++;
+      }
+      if (sTrack.welcomeLineAction == 2) {
+        welcome_in_count++;
+      }
+      if (sTrack.byeLineAction == 1) {
+        bye_out_count++;
+      }
+      if (sTrack.byeLineAction == 2) {
+        bye_in_count++;
+      }
   }
   // Dump modified image if savedImagePath is set
   if (!savedImagePath.empty()) {
@@ -403,6 +432,10 @@ bool Pipeline::Process(cv::Mat &rgbaImage, std::string savedImagePath,std::vecto
     drawPolygon(tracker.area_,&rgbaImage);
     drawLine(tracker.lineOut_,cv::Scalar(0, 56, 168),&rgbaImage);
     drawLine(tracker.lineIn_,cv::Scalar(255,223, 0),&rgbaImage);
+    drawLine(tracker.welcomeLineOut_,cv::Scalar(0x66,0xD3,0xC0),&rgbaImage);
+    drawLine(tracker.welcomeLineIn_,cv::Scalar(0xFD,0xDE,0x83),&rgbaImage);
+    drawLine(tracker.byeLineOut_,cv::Scalar(0xFC, 0x84, 0x16),&rgbaImage);
+    drawLine(tracker.byeLineIn_,cv::Scalar(0x36,0x36, 0x36),&rgbaImage);
     trackProcessTime = GetElapsedTime(t);
     VisualizeStatus(preprocessTime, predictTime, postprocessTime,trackProcessTime, &rgbaImage);
     cv::Mat bgrImage;

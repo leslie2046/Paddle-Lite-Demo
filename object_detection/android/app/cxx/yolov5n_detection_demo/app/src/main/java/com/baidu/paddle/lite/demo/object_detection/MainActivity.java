@@ -185,11 +185,23 @@ public class MainActivity extends Activity implements View.OnClickListener, Came
             ArrayList<PointF> area = new Gson().fromJson(areaJson, type);
 //            predictor.setDynamicArea(area);
 
-            String lineAJson = "[{\"x\":138,\"y\":414},{\"x\":193,\"y\":360},{\"x\":291,\"y\":351},{\"x\":391,\"y\":389}]";
-            String lineBJson = "[{\"x\":143,\"y\":429},{\"x\":208,\"y\":372},{\"x\":292,\"y\":368},{\"x\":414,\"y\":418}]";
+            String lineAJson = "[{\"x\":138,\"y\":420},{\"x\":193,\"y\":360},{\"x\":291,\"y\":350},{\"x\":391,\"y\":390}]";
+            String lineBJson = "[{\"x\":138,\"y\":423},{\"x\":193,\"y\":363},{\"x\":291,\"y\":353},{\"x\":391,\"y\":393}]";
             ArrayList<PointF> lineA = new Gson().fromJson(lineAJson, type);
             ArrayList<PointF> lineB = new Gson().fromJson(lineBJson, type);
             predictor.setDynamicLine(lineA,lineB);
+
+            lineAJson = "[{\"x\":138,\"y\":430},{\"x\":193,\"y\":370},{\"x\":291,\"y\":360},{\"x\":391,\"y\":400}]";
+            lineBJson = "[{\"x\":138,\"y\":433},{\"x\":193,\"y\":373},{\"x\":291,\"y\":363},{\"x\":391,\"y\":403}]";
+            lineA = new Gson().fromJson(lineAJson, type);
+            lineB = new Gson().fromJson(lineBJson, type);
+            predictor.setWelcomeDynamicLine(lineA,lineB);
+
+            lineAJson = "[{\"x\":138,\"y\":440},{\"x\":193,\"y\":380},{\"x\":291,\"y\":370},{\"x\":391,\"y\":410}]";
+            lineBJson = "[{\"x\":138,\"y\":443},{\"x\":193,\"y\":383},{\"x\":291,\"y\":373},{\"x\":391,\"y\":413}]";
+            lineA = new Gson().fromJson(lineAJson, type);
+            lineB = new Gson().fromJson(lineBJson, type);
+            predictor.setByeDynamicLine(lineA,lineB);
         }
     }
 

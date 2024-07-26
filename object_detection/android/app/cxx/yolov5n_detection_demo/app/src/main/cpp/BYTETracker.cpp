@@ -26,6 +26,20 @@ bool BYTETracker::setDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv
 	lineIn_.insert(lineIn_.end(),lineIn.begin(),lineIn.end());
 	return true;
 }
+bool BYTETracker::setWelcomeDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn) {
+	welcomeLineOut_.clear();
+	welcomeLineIn_.clear();
+	welcomeLineOut_.insert(welcomeLineOut_.end(),lineOut.begin(),lineOut.end());
+	welcomeLineIn_.insert(welcomeLineIn_.end(),lineIn.begin(),lineIn.end());
+	return true;
+}
+bool BYTETracker::setByeDynamicLine(std::vector<cv::Point2f> lineOut,std::vector<cv::Point2f> lineIn) {
+	byeLineOut_.clear();
+	byeLineIn_.clear();
+	byeLineOut_.insert(byeLineOut_.end(),lineOut.begin(),lineOut.end());
+	byeLineIn_.insert(byeLineIn_.end(),lineIn.begin(),lineIn.end());
+	return true;
+}
 
 vector<STrack> BYTETracker::update(const vector<Object>& objects,int inputW,int inputH)
 {
@@ -247,7 +261,9 @@ vector<STrack> BYTETracker::update(const vector<Object>& objects,int inputW,int 
 		{
 			this->tracked_stracks[i].updateHistory( inputW,inputH);
 			this->tracked_stracks[i].updateAreaStateAndAction(area_);
-			this->tracked_stracks[i].updateLineStateAndAction(lineOut_,lineIn_);
+			this->tracked_stracks[i].updateLineStateAndAction(lineOut_,lineIn_,&this->tracked_stracks[i].lineState,&this->tracked_stracks[i].lineAction);
+			this->tracked_stracks[i].updateLineStateAndAction(welcomeLineOut_,welcomeLineIn_,&this->tracked_stracks[i].welcomeLineState,&this->tracked_stracks[i].welcomeLineAction);
+			this->tracked_stracks[i].updateLineStateAndAction(byeLineOut_,byeLineIn_,&this->tracked_stracks[i].byeLineState,&this->tracked_stracks[i].byeLineAction);
 			output_stracks.push_back(this->tracked_stracks[i]);
 		}
 	}

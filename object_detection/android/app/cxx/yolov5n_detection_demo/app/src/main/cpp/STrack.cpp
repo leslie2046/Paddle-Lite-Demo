@@ -295,14 +295,14 @@ double minDistance(cv::Point2f point,const std::vector<cv::Point2f> line){
 	return d;
 }
 
-void STrack::updateLineStateAndAction(const std::vector<cv::Point2f> lineOut,const std::vector<cv::Point2f> lineIn){
+void STrack::updateLineStateAndAction(const std::vector<cv::Point2f> lineOut,const std::vector<cv::Point2f> lineIn,int *state,int *action){
 	if(lineOut.size()<2||lineIn.size()<2){
-		lineState = -1;
-		lineAction = -1;
+		*state = -1;
+		*action = -1;
 		return;
 	}
 	if(history.size()<2){
-		lineState = 0;
+		*state = 0;
 		return;
 	}
 	cv::Point2f point2F;
@@ -325,7 +325,7 @@ void STrack::updateLineStateAndAction(const std::vector<cv::Point2f> lineOut,con
 	}
 
 	if(!isIntersectOut&&!isIntersectIn){
-		lineAction = 0;
+		*action = 0;
 		return;
 	}
 
@@ -334,31 +334,31 @@ void STrack::updateLineStateAndAction(const std::vector<cv::Point2f> lineOut,con
 		double distanceIn = minDistance(prePoint2F,lineIn);
 		//一次跨越两条线
 		if(distanceOut < distanceIn){
-			lineAction = 2;
-			lineState = 0;
+			*action = 2;
+			*state = 0;
 		}else{
-			lineAction = 1;
-			lineState = 0;
+			*action = 1;
+			*state = 0;
 		}
 		return;
 	}
 	if(isIntersectOut){
-		if(lineState == 0||lineState == -1||lineState == 1){
-			lineState = 1;
-			lineAction = 0;
-		}else if(lineState == 2){
-			lineState = 0;
-			lineAction = 1;
+		if(*state == 0||*state == -1||*state == 1){
+			*state = 1;
+			*action = 0;
+		}else if(*state == 2){
+			*state = 0;
+			*action = 1;
 		}else{
 			//TODO
 		}
 	}else{
-		if(lineState == 0||lineState == -1||lineState == 2){
-			lineState = 2;
-			lineAction = 0;
-		}else if(lineState == 1){
-			lineState = 0;
-			lineAction = 2;
+		if(*state == 0||*state == -1||*state == 2){
+			*state = 2;
+			*action = 0;
+		}else if(*state == 1){
+			*state = 0;
+			*action = 2;
 		}else{
 			//TODO
 		}

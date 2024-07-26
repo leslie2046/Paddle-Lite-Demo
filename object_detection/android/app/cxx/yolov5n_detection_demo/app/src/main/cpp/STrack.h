@@ -32,7 +32,7 @@ public:
 	void update(STrack &new_track, int frame_id);
 	void updateHistory(int inputW,int inputH);
 	void updateAreaStateAndAction(const std::vector<cv::Point2f> area);
-	void updateLineStateAndAction(const std::vector<cv::Point2f> lineOut,const std::vector<cv::Point2f> lineIn);
+	void updateLineStateAndAction(const std::vector<cv::Point2f> lineOut,const std::vector<cv::Point2f> lineIn,int *state,int *action);
 
 public:
 	bool is_activated;
@@ -54,6 +54,10 @@ public:
 	int areaAction = -1;//-1:功能未启用 0:not change 1:in to out 2:out to in
 	int lineState = -1;//-1:功能未启用 0:reset 1:跨越了out  2:跨越了in
 	int lineAction = -1; //-1:功能未启用 0:not change 1:in to out 2:out to in
+	int welcomeLineState = -1;//-1:功能未启用 0:reset 1:跨越了out  2:跨越了in
+	int welcomeLineAction = -1; //-1:功能未启用 0:not change 1:in to out 2:out to in
+	int byeLineState = -1;//-1:功能未启用 0:reset 1:跨越了out  2:跨越了in
+	int byeLineAction = -1; //-1:功能未启用 0:not change 1:in to out 2:out to in
 	int input_w;
 	int input_h;
 private:
